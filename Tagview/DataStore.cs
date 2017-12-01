@@ -5,6 +5,7 @@ using System.Text;
 using SQLite;
 using System.IO;
 using Android.Util;
+using Android.OS.Storage;
 
 namespace Tagview
 {
@@ -13,7 +14,7 @@ namespace Tagview
     {
         [PrimaryKey, AutoIncrement, Column("_id")]
         public int Id { get; set; }
-        [MaxLength(15)]
+        [MaxLength(15), Unique]
         public string Name { get; set; }
         public CategoryRec()
         {
@@ -28,27 +29,58 @@ namespace Tagview
 
     static class DataStore
     {
-        static List<CategoryRec> categories = new List<CategoryRec>();
+        static List<CategoryRec> categories;
         static string dbPath;
         static SQLiteConnection db;
 
         static DataStore()
         {
+            OpenDatabase();
+        }
+
+        private static void OpenDatabase()
+        {
             dbPath = Path.Combine(
-                System.Environment.GetFolderPath(System.Environment.SpecialFolder.Personal),
+                //System.Environment.GetFolderPath(System.Environment.SpecialFolder.Personal),
+                "/storage/emulated/0/Android/data/Tagview.Tagview",
                 "tagview.db3");
-            if (File.Exists(dbPath))
-            {
-                Log.Info("DataStore", "Database exists at " + dbPath);
-            }
+
+            // remember this before opening the connection creates the file automatically
+            bool database_exists = File.Exists(dbPath);
+
             db = new SQLiteConnection(dbPath);
-            // db.CreateTable<Category>();
+
+            if (! database_exists) {
+                Log.Info("DataStore", "No database exists at " + dbPath);
+                InitialiseDatabase();
+            }
+
+            LoadDataModel();
+        }
+
+        private static void InitialiseDatabase()
+        {
+            db.CreateTable<CategoryRec>();
+            db.Insert(new CategoryRec("General"));
+            db.Insert(new CategoryRec("Holiday"));
+            db.Insert(new CategoryRec("Family"));
+        }
+
+        private static void LoadDataModel()
+        {
+            //
             var table = db.Table<CategoryRec>();
-            foreach (var c in table)
-            {
+            categories = new List<CategoryRec>();
+            foreach (var c in table) {
                 categories.Add(c);
             }
 
+        }
+
+        public static List<CategoryRec> LoadCategories()
+        {
+            var table = db.Table<CategoryRec>();
+            return table.ToList<CategoryRec>();
         }
 
         // send the category list to the adapter
@@ -58,8 +90,7 @@ namespace Tagview
 
             string[] names = new string[categories.Count];
             int i = 0;
-            foreach (var c in categories)
-            {
+            foreach (var c in categories) {
                 names[i++] = c.Name;
             }
             return names;
@@ -68,19 +99,21 @@ namespace Tagview
         public static void ClearDatabase()
         {
             Log.Info("DataStore", "ClearDatabase: ");
-            db.DropTable<CategoryRec>();
-            db.CreateTable<CategoryRec>();
 
-            db.Insert(new CategoryRec("General"));
-            db.Insert(new CategoryRec("Holiday"));
-            db.Insert(new CategoryRec("Family"));
+            // easier and more definite to delete the database file and recreate it
+            // rather than dropping all the objects
+            db.Close();
+            File.Delete(dbPath);
+            db = new SQLiteConnection(dbPath);
 
-            categories = new List<CategoryRec>();
-            var table = db.Table<CategoryRec>();
-            foreach (var c in table)
-            {
-                categories.Add(c);
-            }
+            InitialiseDatabase();
+            LoadDataModel();
+        }
+
+        public static void AddCategory(CategoryRec newCategory)
+        {
+            db.Insert(newCategory);
+            categories.Add(newCategory);
         }
 
     }

@@ -18,7 +18,6 @@ namespace Tagview
     [Activity(Label = "CategoriesActivity")]
     public class CategoriesActivity : Activity
     {
-        string[] categories;
 
         protected override void OnCreate(Bundle savedInstanceState)
         {
@@ -28,8 +27,35 @@ namespace Tagview
             SetContentView(Resource.Layout.Categories);
 
             ListView category_lvw = FindViewById<ListView>(Resource.Id.category_lvw);
-            category_lvw.Adapter = new ArrayAdapter<String>(this, Android.Resource.Layout.SimpleListItemMultipleChoice, DataStore.GetCategories());
+            //var adapter = new ArrayAdapter<String>(this, Android.Resource.Layout.SimpleListItemMultipleChoice, DataStore.GetCategories());
+            var adapter = new TableAdapter(this);
+            adapter.Fill();
+            category_lvw.Adapter = adapter;
 
+            FindViewById<ImageButton>(Resource.Id.add_category_btn).Click += (object sender, EventArgs args) => {
+                Log.Info("CategoriesActivity", "Add category");
+                AlertDialog.Builder alert = new AlertDialog.Builder(this);
+                alert.SetTitle("New Category");
+                EditText et = new EditText(this);
+                alert.SetView(et);
+                alert.SetPositiveButton("Add", (senderAlert, args2) => {
+                    try {
+                        //DataStore.AddCategory(et.Text);
+                        Toast.MakeText(this, "Category added: " + et.Text, ToastLength.Short).Show();
+                        adapter.Add(et.Text);
+                        //System.Collections.ICollection items = DataStore.GetCategories();
+                        //adapter.AddAll(items);
+                    }
+                    catch (SQLiteException ex) {
+                        Log.Error(this.ToString(), "Add failed : " + ex);
+                        Toast.MakeText(this, ex.Message, ToastLength.Long).Show();
+                    }
+                });
+                alert.SetNegativeButton("Cancel", (senderAlert, args2) => { });
+                Dialog dialog = alert.Create();
+                dialog.Show();
+                
+            };
         }
     }
 }

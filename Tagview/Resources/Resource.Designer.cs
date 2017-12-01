@@ -66,6 +66,9 @@ namespace Tagview
 		public partial class Id
 		{
 			
+			// aapt resource value: 0x7f05000e
+			public const int TableItemText = 2131034126;
+			
 			// aapt resource value: 0x7f050002
 			public const int add_category_btn = 2131034114;
 			
@@ -132,6 +135,9 @@ namespace Tagview
 			
 			// aapt resource value: 0x7f030003
 			public const int settings = 2130903043;
+			
+			// aapt resource value: 0x7f030004
+			public const int TableListLayout = 2130903044;
 			
 			static Layout()
 			{
