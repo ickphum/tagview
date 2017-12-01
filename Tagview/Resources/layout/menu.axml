@@ -1,0 +1,36 @@
+<?xml version="1.0" encoding="utf-8"?>
+<GridLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:columnCount="2"
+    android:layout_width="wrap_content"
+    android:layout_height="wrap_content"
+    android:minWidth="25px"
+    android:minHeight="25px">
+    <Button
+        android:text="Resume"
+        android:id="@+id/resume"
+        android:width="100dp" />
+    <Button
+        android:text="Restart"
+        android:id="@+id/restart"
+        android:width="100dp" />
+    <Button
+        android:text="Categories"
+        android:id="@+id/categories"
+        android:width="100dp" />
+    <Button
+        android:text="Filters"
+        android:id="@+id/filters"
+        android:width="100dp" />
+    <Button
+        android:text="Sequences"
+        android:id="@+id/seq"
+        android:width="100dp" />
+    <Button
+        android:text="Tag Photos"
+        android:id="@+id/tag"
+        android:width="100dp" />
+    <Button
+        android:text="Settings"
+        android:id="@+id/settings"
+        android:width="100dp" />
+</GridLayout>
