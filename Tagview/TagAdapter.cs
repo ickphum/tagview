@@ -12,19 +12,19 @@ using Android.Widget;
 
 namespace Tagview
 {
-    class TableAdapter : BaseAdapter<CategoryRec>
+    class TagAdapter : BaseAdapter<TagRec>
     {
 
         Context context;
-        List<CategoryRec> items;
+        List<TagRec> items;
 
-        public TableAdapter(Context context)
+        public TagAdapter(Context context)
         {
             this.context = context;
-            items = new List<CategoryRec>();
+            items = new List<TagRec>();
         }
 
-        public override CategoryRec this[int position] {
+        public override TagRec this[int position] {
             get { return items[position]; }
         }
 
@@ -33,31 +33,28 @@ namespace Tagview
             return position;
         }
 
-        public void Fill()
+        public void Fill(int category_id)
         {
-            items = DataStore.LoadCategories();
+            items = DataStore.LoadTags(category_id);
         }
 
         public override View GetView(int position, View convertView, ViewGroup parent)
         {
             var view = convertView;
-            TableAdapterViewHolder holder = null;
+            TagAdapterViewHolder holder = null;
 
             if (view != null)
-                holder = view.Tag as TableAdapterViewHolder;
+                holder = view.Tag as TagAdapterViewHolder;
 
             if (holder == null) {
-                holder = new TableAdapterViewHolder();
+                holder = new TagAdapterViewHolder();
                 var inflater = context.GetSystemService(Context.LayoutInflaterService).JavaCast<LayoutInflater>();
-                //replace with your item and your holder items
-                //comment back in
-                view = inflater.Inflate(Resource.Layout.TableListLayout, parent, false);
-                holder.Title = view.FindViewById<TextView>(Resource.Id.TableItemText);
+                view = inflater.Inflate(Resource.Layout.DataListItem, parent, false);
+                holder.Title = view.FindViewById<TextView>(Resource.Id.ListItemText);
+
                 view.Tag = holder;
             }
 
-
-            //fill in your items
             holder.Title.Text = items[position].Name;
 
             return view;
@@ -69,17 +66,17 @@ namespace Tagview
             }
         }
 
-        public void Add(CategoryRec category)
+        public void Add(TagRec tag)
         {
-            items.Add(category);
+            items.Add(tag);
             NotifyDataSetChanged();
-            DataStore.AddCategory(category);
+            DataStore.AddTag(tag);
         }
 
-        public void Add(String name)
+        public void Add(int category_id, String name)
         {
-            CategoryRec newCategory = new CategoryRec(name);
-            Add(newCategory);
+            TagRec newTag = new TagRec(category_id, name);
+            Add(newTag);
         }
 
         public void Clear()
@@ -89,7 +86,7 @@ namespace Tagview
 
     }
 
-    class TableAdapterViewHolder : Java.Lang.Object
+    class TagAdapterViewHolder : Java.Lang.Object
     {
         //Your adapter views to re-use
         public TextView Title { get; set; }

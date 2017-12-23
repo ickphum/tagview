@@ -11,25 +11,19 @@
         android:layout_height="wrap_content"
         android:id="@+id/linearLayout1">
         <TextView
-            android:text="Categories"
+            android:text="name"
             android:textAppearance="?android:attr/textAppearanceLarge"
             android:layout_width="wrap_content"
             android:layout_height="match_parent"
             android:gravity="center"
-            android:id="@+id/textView1"
+            android:id="@+id/title_tvw"
             android:layout_marginRight="0.0dp"
             android:layout_weight="1" />
         <ImageButton
             android:src="@drawable/ic_add_white_24dp"
             android:layout_width="wrap_content"
             android:layout_height="match_parent"
-            android:id="@+id/add_category_btn"
-            android:layout_marginLeft="0.0dp" />
-        <ImageButton
-            android:src="@drawable/ic_delete_white_24dp"
-            android:layout_width="wrap_content"
-            android:layout_height="match_parent"
-            android:id="@+id/imageButton1"
+            android:id="@+id/add_child_btn"
             android:layout_marginLeft="0.0dp" />
     </LinearLayout>
     <ListView
@@ -37,5 +31,5 @@
         android:minHeight="25px"
         android:layout_width="match_parent"
         android:layout_height="match_parent"
-        android:id="@+id/category_lvw" />
+        android:id="@+id/children_lvw" />
 </LinearLayout>

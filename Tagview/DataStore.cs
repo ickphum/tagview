@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using SQLite;
+using SQLiteNetExtensions.Attributes;
 using System.IO;
 using Android.Util;
 using Android.OS.Storage;
@@ -10,7 +11,7 @@ using Android.OS.Storage;
 namespace Tagview
 {
     [Table(name: "Category")]
-    class CategoryRec
+    public class CategoryRec
     {
         [PrimaryKey, AutoIncrement, Column("_id")]
         public int Id { get; set; }
@@ -26,10 +27,47 @@ namespace Tagview
         }
     }
 
+    [Table(name: "Tag")]
+    public class TagRec
+    {
+        [PrimaryKey, AutoIncrement, Column("_id")]
+        public int Id { get; set; }
+        [MaxLength(15), Unique]
+        public string Name { get; set; }
+        [ForeignKey(typeof(CategoryRec))]
+        public int category_id { get; set; }
+
+        public TagRec()
+        {
+            Name = "";
+        }
+        public TagRec(int Category, string NewName)
+        {
+            category_id = Category;
+            Name = NewName;
+        }
+    }
+
+    [Table(name: "Sequence")]
+    public class SequenceRec
+    {
+        [PrimaryKey, AutoIncrement, Column("_id")]
+        public int Id { get; set; }
+        [MaxLength(15), Unique]
+        public string Name { get; set; }
+
+        public SequenceRec()
+        {
+            Name = "";
+        }
+        public SequenceRec(string NewName)
+        {
+            Name = NewName;
+        }
+    }
 
     static class DataStore
     {
-        static List<CategoryRec> categories;
         static string dbPath;
         static SQLiteConnection db;
 
@@ -55,45 +93,18 @@ namespace Tagview
                 InitialiseDatabase();
             }
 
-            LoadDataModel();
         }
 
         private static void InitialiseDatabase()
         {
             db.CreateTable<CategoryRec>();
-            db.Insert(new CategoryRec("General"));
+            db.CreateTable<TagRec>();
+            int general = db.Insert(new CategoryRec("General"));
+            db.Insert(new TagRec(general, "Funny"));
+            db.Insert(new TagRec(general, "Pretty"));
+            db.Insert(new TagRec(general, "Cold"));
             db.Insert(new CategoryRec("Holiday"));
             db.Insert(new CategoryRec("Family"));
-        }
-
-        private static void LoadDataModel()
-        {
-            //
-            var table = db.Table<CategoryRec>();
-            categories = new List<CategoryRec>();
-            foreach (var c in table) {
-                categories.Add(c);
-            }
-
-        }
-
-        public static List<CategoryRec> LoadCategories()
-        {
-            var table = db.Table<CategoryRec>();
-            return table.ToList<CategoryRec>();
-        }
-
-        // send the category list to the adapter
-        public static string[] GetCategories()
-        {
-            Log.Info("DataStore", "GetCategories");
-
-            string[] names = new string[categories.Count];
-            int i = 0;
-            foreach (var c in categories) {
-                names[i++] = c.Name;
-            }
-            return names;
         }
 
         public static void ClearDatabase()
@@ -107,13 +118,40 @@ namespace Tagview
             db = new SQLiteConnection(dbPath);
 
             InitialiseDatabase();
-            LoadDataModel();
         }
 
-        public static void AddCategory(CategoryRec newCategory)
+        public static List<CategoryRec> LoadCategories()
         {
-            db.Insert(newCategory);
-            categories.Add(newCategory);
+            var table = db.Table<CategoryRec>();
+            return table.ToList<CategoryRec>();
+        }
+
+        public static int AddCategory(CategoryRec newCategory)
+        {
+            return db.Insert(newCategory);
+        }
+
+        public static int UpdateCategory(CategoryRec category)
+        {
+            return db.Update(category);
+        }
+
+        public static int DeleteCategory(CategoryRec category)
+        {
+            db.Execute("delete from Tag where category_id = ?", category.Id);
+            return db.Delete(category);
+        }
+
+        public static List<TagRec> LoadTags(int category_id)
+        {
+            var table = db.Query<TagRec>("select * from Tag where category_id = ?", category_id);
+            return table;
+            //return table.ToList<TagRec>();
+        }
+
+        public static int AddTag(TagRec newTag)
+        {
+            return db.Insert(newTag); 
         }
 
     }

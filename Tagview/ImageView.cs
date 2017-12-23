@@ -15,6 +15,7 @@ namespace Tagview
 {
     public class ImageView  : View
     {
+        private static string TAG = "ImageView";
 
         Context mContext;
         Activity mActivity;
@@ -27,6 +28,7 @@ namespace Tagview
         ValueAnimator animatorX;
         ValueAnimator animatorY;
         ValueAnimator animatorRadius;
+        Bitmap currentBitmap;
 
         Color[] colors = new[] { Color.Red, Color.LightBlue, Color.Green, Color.Yellow, Color.Orange };
 
@@ -76,6 +78,20 @@ namespace Tagview
                 Invalidate();
             };
 
+            var internalStorageRoot = Android.OS.Environment.ExternalStorageDirectory.Path;
+            var cameraDir = System.IO.Path.Combine(internalStorageRoot, "DCIM", "Camera");
+            //var mounts = System.IO.File.ReadAllText("/proc/mounts");
+            //Log.Info("ImageView", "mounts = " + mounts);
+            // /storage/25AD-18F8 is the external SD root as found from /proc/mounts
+            string[] files = System.IO.Directory.GetFiles(cameraDir);
+            Log.Info(TAG, "init file count = " + files.Length);
+            foreach (string file in files) {
+                Log.Info(TAG, "file = " + file);
+            }
+            currentBitmap = BitmapFactory.DecodeFile(files[0]);
+
+            // /mnt/media_rw/25AD-18F8 /storage/25AD-18F8
+
         }
 
         internal void ShowCategories()
@@ -88,11 +104,12 @@ namespace Tagview
             mActivity = activity;
         }
 
-        public override bool OnTouchEvent(MotionEvent e)
+        public void HandleSingleTap(MotionEvent e)
         {
 
             float centerScreenX = Width / 2.0f;
             float centerScreenY = Height / 2.0f;
+            Log.Info(TAG, "touch event at " + e.GetX() + "," + e.GetY());
             activeIndex = isInsideCircle(e.GetX(), e.GetY());
             if (activeIndex > -1)
             {
@@ -102,7 +119,7 @@ namespace Tagview
                 animatorX.Start();
                 animatorY.Start();
                 animatorRadius.Start();
-                return true;
+                return;
             }
 
             // start menu
@@ -110,7 +127,7 @@ namespace Tagview
             MenuDialog menu = new MenuDialog();
             menu.Show(transaction, "Dialog Fragment");
 
-            return false;
+            return;
         }
 
         int isInsideCircle(float x, float y)
@@ -205,6 +222,32 @@ namespace Tagview
 
         protected override void OnDraw(Canvas canvas)
         {
+            float canvasW = canvas.Width;
+            float canvasH = canvas.Height;
+            float bitmapW = currentBitmap.Width;
+            float bitmapH = currentBitmap.Height;
+            Log.Info("ImageView.OnDraw", "canvas size = " + canvasW + "x" + canvasH);
+            float canvasRatio = (float)canvasW / (float)canvasH;
+            float bitmapRatio = (float)bitmapW / (float)bitmapH;
+            Log.Info("ImageView.OnDraw", "bm size = " + bitmapW + "x" + bitmapH);
+            float bitmapScale = bitmapRatio > canvasRatio
+                ? canvasW / bitmapW
+                : canvasH / bitmapH;
+            Log.Info("ImageView.OnDraw", "bmr = " + bitmapRatio + ", bms = " + bitmapScale);
+            Rect dest = new Rect(
+                (int)(bitmapRatio > canvasRatio ? 0 : (canvasW - (bitmapW * bitmapScale)) / 2),
+                (int)(bitmapRatio > canvasRatio ? (canvasH - (bitmapH * bitmapScale)) / 2 : 0),
+                (int)(bitmapRatio > canvasRatio ? canvasW - 1 : canvasW - ((canvasW - (bitmapW * bitmapScale)) / 2)),
+                (int)(bitmapRatio > canvasRatio ? canvasH - ((canvasH - (bitmapH * bitmapScale)) / 2) : 0));
+            Log.Info("ImageView.OnDraw", "dest L = " + dest.Left);
+            Log.Info("ImageView.OnDraw", "dest T = " + dest.Top);
+            Log.Info("ImageView.OnDraw", "dest R = " + dest.Right);
+            Log.Info("ImageView.OnDraw", "dest B = " + dest.Bottom);
+            Log.Info("ImageView.OnDraw", "dest W = " + dest.Width());
+            Log.Info("ImageView.OnDraw", "dest H = " + dest.Height());
+
+            canvas.DrawBitmap(currentBitmap, null, dest, null);
+
             drawSmallCircles(canvas);
             drawBigCircle(canvas);
         }

@@ -19,43 +19,75 @@ namespace Tagview
     public class CategoriesActivity : Activity
     {
 
+        CategoryAdapter adapter;
+
         protected override void OnCreate(Bundle savedInstanceState)
         {
             base.OnCreate(savedInstanceState);
             this.RequestWindowFeature(WindowFeatures.NoTitle);
-            // Set our view from the "main" layout resource
-            SetContentView(Resource.Layout.Categories);
+            SetContentView(Resource.Layout.DataList);
 
-            ListView category_lvw = FindViewById<ListView>(Resource.Id.category_lvw);
-            //var adapter = new ArrayAdapter<String>(this, Android.Resource.Layout.SimpleListItemMultipleChoice, DataStore.GetCategories());
-            var adapter = new TableAdapter(this);
+            FindViewById<TextView>(Resource.Id.title_tvw).Text = "Categories";
+
+            ListView category_lvw = FindViewById<ListView>(Resource.Id.children_lvw);
+            adapter = new CategoryAdapter(this);
             adapter.Fill();
             category_lvw.Adapter = adapter;
 
-            FindViewById<ImageButton>(Resource.Id.add_category_btn).Click += (object sender, EventArgs args) => {
+            FindViewById<ImageButton>(Resource.Id.add_child_btn).Click += (object sender, EventArgs args) => {
                 Log.Info("CategoriesActivity", "Add category");
                 AlertDialog.Builder alert = new AlertDialog.Builder(this);
                 alert.SetTitle("New Category");
                 EditText et = new EditText(this);
                 alert.SetView(et);
                 alert.SetPositiveButton("Add", (senderAlert, args2) => {
-                    try {
-                        //DataStore.AddCategory(et.Text);
-                        Toast.MakeText(this, "Category added: " + et.Text, ToastLength.Short).Show();
-                        adapter.Add(et.Text);
-                        //System.Collections.ICollection items = DataStore.GetCategories();
-                        //adapter.AddAll(items);
-                    }
-                    catch (SQLiteException ex) {
-                        Log.Error(this.ToString(), "Add failed : " + ex);
-                        Toast.MakeText(this, ex.Message, ToastLength.Long).Show();
-                    }
+                    adapter.Add(et.Text);
                 });
                 alert.SetNegativeButton("Cancel", (senderAlert, args2) => { });
                 Dialog dialog = alert.Create();
                 dialog.Show();
                 
             };
+        }
+
+        public void HandleCategoryClick(CategoryRec category)
+        {
+            Android.Widget.Toast.MakeText(this, "Selected " + category.Name, Android.Widget.ToastLength.Short).Show();
+            Log.Info("CategoriesActivity", "ItemClick");
+            var category_activity = new Intent(this, typeof(CategoryActivity));
+            category_activity.PutExtra("Id", category.Id);
+            category_activity.PutExtra("Name", category.Name);
+            StartActivity(category_activity);
+        }
+
+        public void EditCategory(int position, CategoryRec category)
+        {
+            AlertDialog.Builder alert = new AlertDialog.Builder(this);
+            alert.SetTitle("Edit Category");
+            EditText et = new EditText(this);
+            et.Text = category.Name;
+
+            alert.SetView(et);
+            alert.SetPositiveButton("Update", (senderAlert, args2) => {
+                category.Name = et.Text;
+                adapter.Update(position, category);
+            });
+            alert.SetNegativeButton("Cancel", (senderAlert, args2) => { });
+            Dialog dialog = alert.Create();
+            dialog.Show();
+        }
+
+        public void DeleteCategory(int position, CategoryRec category)
+        {
+            AlertDialog.Builder alert = new AlertDialog.Builder(this);
+            alert.SetTitle("Delete Category '" + category.Name + "'");
+
+            alert.SetPositiveButton("Delete", (senderAlert, args2) => {
+                adapter.Delete(position, category);
+            });
+            alert.SetNegativeButton("Cancel", (senderAlert, args2) => { });
+            Dialog dialog = alert.Create();
+            dialog.Show();
         }
     }
 }
