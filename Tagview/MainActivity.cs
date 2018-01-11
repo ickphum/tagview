@@ -45,6 +45,13 @@ namespace Tagview
             StartActivity(intent);
         }
 
+        internal void ShowSequences()
+        {
+            Log.Info(TAG, "ShowSequences");
+            var intent = new Intent(this, typeof(SequencesActivity));
+            StartActivity(intent);
+        }
+
         public override bool OnTouchEvent(MotionEvent e)
         {
             _gestureDetector.OnTouchEvent(e);

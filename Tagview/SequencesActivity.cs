@@ -10,14 +10,15 @@ using Android.Runtime;
 using Android.Views;
 using Android.Widget;
 using Android.Util;
-using SQLite;
 
 namespace Tagview
 {
-    [Activity(Label = "CategoryActivity")]
-    public class CategoryActivity : Activity
+    [Activity(Label = "SequencesActivity")]
+    public class SequencesActivity : Activity
     {
-        TagAdapter adapter;
+        private static string TAG = "SequencesActivity";
+
+        SequenceAdapter adapter;
 
         protected override void OnCreate(Bundle savedInstanceState)
         {
@@ -25,31 +26,22 @@ namespace Tagview
 
             this.RequestWindowFeature(WindowFeatures.NoTitle);
             SetContentView(Resource.Layout.DataList);
-            int Id = Intent.GetIntExtra("Id", -1);
-            string Name = Intent.GetStringExtra("Name");
-            int Active = Intent.GetIntExtra("Active", -1);
 
-            FindViewById<TextView>(Resource.Id.title_tvw).Text = Name;
+            FindViewById<TextView>(Resource.Id.title_tvw).Text = "Sequences";
 
-            ListView category_tags_lvw = FindViewById<ListView>(Resource.Id.children_lvw);
-            adapter = new TagAdapter(this);
-            adapter.Fill(Id);
-            category_tags_lvw.Adapter = adapter;
+            ListView sequence_lvw = FindViewById<ListView>(Resource.Id.children_lvw);
+            adapter = new SequenceAdapter(this);
+            adapter.Fill();
+            sequence_lvw.Adapter = adapter;
 
             FindViewById<ImageButton>(Resource.Id.add_child_btn).Click += (object sender, EventArgs args) => {
+                Log.Info(TAG, "Add sequence");
                 AlertDialog.Builder alert = new AlertDialog.Builder(this);
-                alert.SetTitle("New Tag");
+                alert.SetTitle("New Sequence");
                 EditText et = new EditText(this);
                 alert.SetView(et);
                 alert.SetPositiveButton("Add", (senderAlert, args2) => {
-                    try {
-                        Toast.MakeText(this, "Category added: " + et.Text, ToastLength.Short).Show();
-                        adapter.Add(Id,et.Text);
-                    }
-                    catch (SQLiteException ex) {
-                        Log.Error(this.ToString(), "Add failed : " + ex);
-                        Toast.MakeText(this, ex.Message, ToastLength.Long).Show();
-                    }
+                    adapter.Add(et.Text);
                 });
                 alert.SetNegativeButton("Cancel", (senderAlert, args2) => { });
                 Dialog dialog = alert.Create();
@@ -58,34 +50,45 @@ namespace Tagview
             };
         }
 
-        public void EditTag(int position, TagRec tag)
+        public void HandleSequenceClick(SequenceRec sequence)
+        {
+            Android.Widget.Toast.MakeText(this, "Selected " + sequence.Name, Android.Widget.ToastLength.Short).Show();
+            Log.Info(TAG, "ItemClick");
+            var sequence_activity = new Intent(this, typeof(SequenceActivity));
+            sequence_activity.PutExtra("Id", sequence.Id);
+            sequence_activity.PutExtra("Name", sequence.Name);
+            StartActivity(sequence_activity);
+        }
+
+        public void EditSequence(int position, SequenceRec sequence)
         {
             AlertDialog.Builder alert = new AlertDialog.Builder(this);
-            alert.SetTitle("Edit Tag");
+            alert.SetTitle("Edit Sequence");
             EditText et = new EditText(this);
-            et.Text = tag.Name;
+            et.Text = sequence.Name;
 
             alert.SetView(et);
             alert.SetPositiveButton("Update", (senderAlert, args2) => {
-                tag.Name = et.Text;
-                adapter.Update(position, tag);
+                sequence.Name = et.Text;
+                adapter.Update(position, sequence);
             });
             alert.SetNegativeButton("Cancel", (senderAlert, args2) => { });
             Dialog dialog = alert.Create();
             dialog.Show();
         }
 
-        public void DeleteTag(int position, TagRec tag)
+        public void DeleteSequence(int position, SequenceRec sequence)
         {
             AlertDialog.Builder alert = new AlertDialog.Builder(this);
-            alert.SetTitle("Delete Tag '" + tag.Name + "'");
+            alert.SetTitle("Delete Sequence '" + sequence.Name + "'");
 
             alert.SetPositiveButton("Delete", (senderAlert, args2) => {
-                adapter.Delete(position, tag);
+                adapter.Delete(position, sequence);
             });
             alert.SetNegativeButton("Cancel", (senderAlert, args2) => { });
             Dialog dialog = alert.Create();
             dialog.Show();
         }
+
     }
 }

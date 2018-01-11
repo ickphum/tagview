@@ -80,8 +80,8 @@ namespace Tagview
 
             var internalStorageRoot = Android.OS.Environment.ExternalStorageDirectory.Path;
             var cameraDir = System.IO.Path.Combine(internalStorageRoot, "DCIM", "Camera");
-            //var mounts = System.IO.File.ReadAllText("/proc/mounts");
-            //Log.Info("ImageView", "mounts = " + mounts);
+            // var mounts = System.IO.File.ReadAllText("/proc/mounts");
+            // Log.Info(TAG, "mounts = " + mounts);
             // /storage/25AD-18F8 is the external SD root as found from /proc/mounts
             string[] files = System.IO.Directory.GetFiles(cameraDir);
             Log.Info(TAG, "init file count = " + files.Length);

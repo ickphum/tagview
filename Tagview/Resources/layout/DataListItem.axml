@@ -11,6 +11,12 @@
         android:layout_weight="1"
         android:id="@+id/ListItemText"
         android:gravity="center_vertical" />
+    <Switch
+        android:layout_width="wrap_content"
+        android:layout_height="match_parent"
+        android:id="@+id/enabled_swt"
+        android:layout_marginRight="5dp"
+        android:layout_marginLeft="5dp" />
     <ImageButton
         android:src="@drawable/ic_edit_white_24dp"
         android:layout_width="wrap_content"

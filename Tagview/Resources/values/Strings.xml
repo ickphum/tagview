@@ -1,5 +1,10 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
-    <string name="Hello">Hello World, Click Me!</string>
     <string name="ApplicationName">Tagview</string>
+  <string-array name="sort_options_array">
+    <item>Name</item>
+    <item>Date</item>
+    <item>Size</item>
+    <item>Orientation</item>
+  </string-array>
 </resources>

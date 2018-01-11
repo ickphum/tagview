@@ -9,24 +9,24 @@ using Android.OS;
 using Android.Runtime;
 using Android.Views;
 using Android.Widget;
-using Android.Database.Sqlite;
+using SQLite;
 using Android.Util;
 
 namespace Tagview
 {
-    class TagAdapter : BaseAdapter<TagRec>
+    class SequenceAdapter : BaseAdapter<SequenceRec>
     {
 
         Context context;
-        List<TagRec> items;
+        List<SequenceRec> items;
 
-        public TagAdapter(Context context)
+        public SequenceAdapter(Context context)
         {
             this.context = context;
-            items = new List<TagRec>();
+            items = new List<SequenceRec>();
         }
 
-        public override TagRec this[int position] {
+        public override SequenceRec this[int position] {
             get { return items[position]; }
         }
 
@@ -35,37 +35,39 @@ namespace Tagview
             return position;
         }
 
-        public void Fill(int category_id)
+        public void Fill()
         {
-            items = DataStore.LoadTags(category_id);
+            items = DataStore.LoadSequences();
         }
 
         public override View GetView(int position, View convertView, ViewGroup parent)
         {
             var view = convertView;
-            TagAdapterViewHolder holder = null;
+            SequenceAdapterViewHolder holder = null;
 
             if (view != null)
-                holder = view.Tag as TagAdapterViewHolder;
+                holder = view.Tag as SequenceAdapterViewHolder;
 
             if (holder == null) {
-                holder = new TagAdapterViewHolder();
+                holder = new SequenceAdapterViewHolder();
                 var inflater = context.GetSystemService(Context.LayoutInflaterService).JavaCast<LayoutInflater>();
                 view = inflater.Inflate(Resource.Layout.DataListItem, parent, false);
                 holder.Title = view.FindViewById<TextView>(Resource.Id.ListItemText);
+                holder.Title.Click += (sender, e) => {
+                    ((SequencesActivity)context).HandleSequenceClick(this[position]);
+                };
 
                 view.FindViewById<Switch>(Resource.Id.enabled_swt).Visibility = ViewStates.Gone;
 
                 holder.EditChild = view.FindViewById<ImageButton>(Resource.Id.edit_child_btn);
                 holder.EditChild.Click += (sender, e) => {
-                    ((CategoryActivity)context).EditTag(position, this[position]);
+                    ((SequencesActivity)context).EditSequence(position, this[position]);
                 };
 
                 holder.DeleteChild = view.FindViewById<ImageButton>(Resource.Id.delete_child_btn);
                 holder.DeleteChild.Click += (sender, e) => {
-                    ((CategoryActivity)context).DeleteTag(position, this[position]);
+                    ((SequencesActivity)context).DeleteSequence(position, this[position]);
                 };
-
 
                 view.Tag = holder;
             }
@@ -81,47 +83,53 @@ namespace Tagview
             }
         }
 
-        public void Add(TagRec tag)
-        {
-            items.Add(tag);
-            NotifyDataSetChanged();
-            DataStore.AddTag(tag);
-        }
-
-        public void Add(int category_id, String name)
-        {
-            TagRec newTag = new TagRec(category_id, name);
-            Add(newTag);
-        }
-
-        public void Update(int position, TagRec tag)
+        public void Add(SequenceRec sequence)
         {
             try {
-                DataStore.UpdateTag(tag);
+                DataStore.AddSequence(sequence);
+            }
+            catch (SQLiteException ex) {
+                Log.Error(this.ToString(), "Add failed : " + ex);
+                return;
+            }
+
+            items.Add(sequence);
+            NotifyDataSetChanged();
+        }
+
+        public void Add(String name)
+        {
+            SequenceRec newSequence = new SequenceRec(name);
+            Add(newSequence);
+        }
+
+        public void Update(int position, SequenceRec sequence)
+        {
+            try {
+                DataStore.UpdateSequence(sequence);
             }
             catch (SQLiteException ex) {
                 Log.Error(this.ToString(), "Update failed : " + ex);
                 return;
             }
 
-            items[position] = tag;
+            items[position] = sequence;
             NotifyDataSetChanged();
         }
 
-        public void Delete(int position, TagRec tag)
+        public void Delete(int position, SequenceRec sequence)
         {
             try {
-                DataStore.DeleteTag(tag);
+                DataStore.DeleteSequence(sequence);
             }
             catch (SQLiteException ex) {
                 Log.Error(this.ToString(), "Delete failed : " + ex);
                 return;
             }
 
-            items.Remove(tag);
+            items.Remove(sequence);
             NotifyDataSetChanged();
         }
-
 
         public void Clear()
         {
@@ -130,11 +138,10 @@ namespace Tagview
 
     }
 
-    class TagAdapterViewHolder : Java.Lang.Object
+    class SequenceAdapterViewHolder : Java.Lang.Object
     {
         //Your adapter views to re-use
         public TextView Title { get; set; }
-        public Switch Active { get; set; }
         public ImageButton EditChild { get; set; }
         public ImageButton DeleteChild { get; set; }
     }

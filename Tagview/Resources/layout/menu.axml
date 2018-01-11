@@ -23,7 +23,7 @@
         android:width="100dp" />
     <Button
         android:text="Sequences"
-        android:id="@+id/seq"
+        android:id="@+id/sequences"
         android:width="100dp" />
     <Button
         android:text="Tag Photos"

@@ -57,6 +57,13 @@ namespace Tagview
                     ((CategoriesActivity)context).HandleCategoryClick(this[position]);
                 };
 
+                holder.Active = view.FindViewById<Switch>(Resource.Id.enabled_swt);
+                holder.Active.CheckedChange += (object sender, CompoundButton.CheckedChangeEventArgs args) => {
+                    CategoryRec category = this[position];
+                    category.Active = args.IsChecked;
+                    Update(position, category);
+                };
+
                 holder.EditChild = view.FindViewById<ImageButton>(Resource.Id.edit_child_btn);
                 holder.EditChild.Click += (sender, e) => {
                     ((CategoriesActivity)context).EditCategory(position, this[position]);
@@ -71,6 +78,8 @@ namespace Tagview
             }
 
             holder.Title.Text = items[position].Name;
+            holder.Active.Checked = items[position].Active;
+
             return view;
         }
 
@@ -139,6 +148,7 @@ namespace Tagview
     {
         //Your adapter views to re-use
         public TextView Title { get; set; }
+        public Switch Active { get; set; }
         public ImageButton EditChild { get; set; }
         public ImageButton DeleteChild { get; set; }
     }

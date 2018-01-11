@@ -17,6 +17,7 @@ namespace Tagview
         public int Id { get; set; }
         [MaxLength(15), Unique]
         public string Name { get; set; }
+        public bool Active { get; set; }
         public CategoryRec()
         {
             Name = "";
@@ -55,19 +56,57 @@ namespace Tagview
         public int Id { get; set; }
         [MaxLength(15), Unique]
         public string Name { get; set; }
+        public int SortCode { get; set; }
+        public int SlideShowPeriodSecs { get; set; }
 
-        public SequenceRec()
-        {
-            Name = "";
-        }
+        public SequenceRec() { }
+
         public SequenceRec(string NewName)
         {
             Name = NewName;
         }
     }
 
+    [Table(name: "SequenceDir")]
+    public class SequenceDirRec
+    {
+        [PrimaryKey, AutoIncrement, Column("_id")]
+        public int Id { get; set; }
+        [ForeignKey(typeof(SequenceRec))]
+        public int SequenceId { get; set; }
+        [MaxLength(200), Unique]
+        public string Directory { get; set; }
+        public bool IncludeChildren { get; set; }
+
+        public SequenceDirRec(int Sequence, string NewDir, bool NewIncludeChildren)
+        {
+            SequenceId = Sequence;
+            Directory = NewDir;
+            IncludeChildren = NewIncludeChildren;
+        }
+    }
+
+    [Table(name: "Image")]
+    public class ImageRec
+    {
+        [PrimaryKey, AutoIncrement, Column("_id")]
+        public int Id { get; set; }
+        [MaxLength(100)]
+        public string Name { get; set; }
+        [MaxLength(200)]
+        public string Directory { get; set; }
+
+        public ImageRec() { }
+        public ImageRec(string NewName, string NewDir)
+        {
+            Name = NewName;
+            Directory = NewDir;
+        }
+    }
+
     static class DataStore
     {
+        private static string TAG = "DataStore";
         static string dbPath;
         static SQLiteConnection db;
 
@@ -92,19 +131,46 @@ namespace Tagview
                 Log.Info("DataStore", "No database exists at " + dbPath);
                 InitialiseDatabase();
             }
-
         }
 
         private static void InitialiseDatabase()
         {
             db.CreateTable<CategoryRec>();
             db.CreateTable<TagRec>();
-            int general = db.Insert(new CategoryRec("General"));
-            db.Insert(new TagRec(general, "Funny"));
-            db.Insert(new TagRec(general, "Pretty"));
-            db.Insert(new TagRec(general, "Cold"));
-            db.Insert(new CategoryRec("Holiday"));
-            db.Insert(new CategoryRec("Family"));
+            db.CreateTable<SequenceRec>();
+            db.CreateTable<SequenceDirRec>();
+            db.CreateTable<ImageRec>();
+
+            int general = AddCategory(new CategoryRec("General"));
+            AddTag(new TagRec(general, "Funny"));
+            AddTag(new TagRec(general, "Pretty"));
+            AddTag(new TagRec(general, "Cold"));
+
+            AddCategory(new CategoryRec("Holiday"));
+            AddCategory(new CategoryRec("Family"));
+
+            int sequence = db.Insert(new SequenceRec("Test"));
+            db.Insert(new SequenceDirRec(sequence, "/a/b/c", true));
+            db.Insert(new SequenceDirRec(sequence, "/a/b/c1", false));
+
+            db.Insert(new ImageRec("match 1 of 3", "/a/b/c"));
+            db.Insert(new ImageRec("match 2 of 3", "/a/b/c/d"));
+            db.Insert(new ImageRec("match 3 of 3", "/a/b/c1"));
+            db.Insert(new ImageRec("nomatch 1 of 2", "/a/b/c2"));
+            db.Insert(new ImageRec("nomatch 2 of 2", "/a/b"));
+
+            /*
+            List<ImageRec> table = db.Query<ImageRec>("select i.* from Image i, Sequence s, SequenceDir sd"
+                + " where s.Name = ? and s._id = sd.SequenceId"
+                + " and ((i.Directory = sd.Directory) or (sd.IncludeChildren = 1 and i.Directory LIKE sd.Directory || '/%'))", "test");
+
+            Log.Info(TAG, "count = " + table.Count);
+
+            foreach (var image in table) {
+                Log.Info(TAG, image.Name);
+            }
+            */
+
         }
 
         public static void ClearDatabase()
@@ -120,6 +186,8 @@ namespace Tagview
             InitialiseDatabase();
         }
 
+        /* Category methods */
+
         public static List<CategoryRec> LoadCategories()
         {
             var table = db.Table<CategoryRec>();
@@ -128,6 +196,7 @@ namespace Tagview
 
         public static int AddCategory(CategoryRec newCategory)
         {
+            newCategory.Active = true;
             return db.Insert(newCategory);
         }
 
@@ -138,9 +207,18 @@ namespace Tagview
 
         public static int DeleteCategory(CategoryRec category)
         {
+            // delete children first
             db.Execute("delete from Tag where category_id = ?", category.Id);
             return db.Delete(category);
         }
+
+        public static void SetCategoryActive(int Id, bool Active)
+        {
+            Log.Info(TAG, "Id = " + Id + ", Active = " + Active);
+            db.Execute("update Category set Active = ? where _id = ?", Active, Id);
+        }
+
+        /* Tag methods */
 
         public static List<TagRec> LoadTags(int category_id)
         {
@@ -148,10 +226,45 @@ namespace Tagview
             return table;
             //return table.ToList<TagRec>();
         }
-
+        
         public static int AddTag(TagRec newTag)
         {
             return db.Insert(newTag); 
+        }
+
+        public static int UpdateTag(TagRec tag)
+        {
+            return db.Update(tag);
+        }
+
+        public static int DeleteTag(TagRec tag)
+        {
+            return db.Delete(tag);
+        }
+
+        /* Sequence methods */
+
+        public static List<SequenceRec> LoadSequences()
+        {
+            var table = db.Table<SequenceRec>();
+            return table.ToList<SequenceRec>();
+        }
+
+        public static int AddSequence(SequenceRec newSequence)
+        {
+            return db.Insert(newSequence);
+        }
+
+        public static int UpdateSequence(SequenceRec sequence)
+        {
+            return db.Update(sequence);
+        }
+
+        public static int DeleteSequence(SequenceRec sequence)
+        {
+            // delete children first
+            db.Execute("delete from SequenceDir where SequenceId = ?", sequence.Id);
+            return db.Delete(sequence);
         }
 
     }
