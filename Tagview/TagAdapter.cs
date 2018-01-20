@@ -58,19 +58,19 @@ namespace Tagview
 
                 holder.EditChild = view.FindViewById<ImageButton>(Resource.Id.edit_child_btn);
                 holder.EditChild.Click += (sender, e) => {
-                    ((CategoryActivity)context).EditTag(position, this[position]);
+                    ((CategoryActivity)context).EditTag(holder.position, this[holder.position]);
                 };
 
                 holder.DeleteChild = view.FindViewById<ImageButton>(Resource.Id.delete_child_btn);
                 holder.DeleteChild.Click += (sender, e) => {
-                    ((CategoryActivity)context).DeleteTag(position, this[position]);
+                    ((CategoryActivity)context).DeleteTag(holder.position, this[holder.position]);
                 };
-
 
                 view.Tag = holder;
             }
 
-            holder.Title.Text = items[position].Name;
+            holder.Title.Text = items[position].name;
+            holder.position = position;
 
             return view;
         }
@@ -137,5 +137,6 @@ namespace Tagview
         public Switch Active { get; set; }
         public ImageButton EditChild { get; set; }
         public ImageButton DeleteChild { get; set; }
+        public int position { get; set; }
     }
 }

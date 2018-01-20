@@ -52,11 +52,11 @@ namespace Tagview
 
         public void HandleCategoryClick(CategoryRec category)
         {
-            Android.Widget.Toast.MakeText(this, "Selected " + category.Name, Android.Widget.ToastLength.Short).Show();
+            Android.Widget.Toast.MakeText(this, "Selected " + category.name, Android.Widget.ToastLength.Short).Show();
             Log.Info("CategoriesActivity", "ItemClick");
             var category_activity = new Intent(this, typeof(CategoryActivity));
-            category_activity.PutExtra("Id", category.Id);
-            category_activity.PutExtra("Name", category.Name);
+            category_activity.PutExtra("Id", category.id);
+            category_activity.PutExtra("Name", category.name);
             StartActivity(category_activity);
         }
 
@@ -65,11 +65,11 @@ namespace Tagview
             AlertDialog.Builder alert = new AlertDialog.Builder(this);
             alert.SetTitle("Edit Category");
             EditText et = new EditText(this);
-            et.Text = category.Name;
+            et.Text = category.name;
 
             alert.SetView(et);
             alert.SetPositiveButton("Update", (senderAlert, args2) => {
-                category.Name = et.Text;
+                category.name = et.Text;
                 adapter.Update(position, category);
             });
             alert.SetNegativeButton("Cancel", (senderAlert, args2) => { });
@@ -80,7 +80,7 @@ namespace Tagview
         public void DeleteCategory(int position, CategoryRec category)
         {
             AlertDialog.Builder alert = new AlertDialog.Builder(this);
-            alert.SetTitle("Delete Category '" + category.Name + "'");
+            alert.SetTitle("Delete Category '" + category.name + "'");
 
             alert.SetPositiveButton("Delete", (senderAlert, args2) => {
                 adapter.Delete(position, category);

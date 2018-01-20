@@ -54,31 +54,32 @@ namespace Tagview
                 view = inflater.Inflate(Resource.Layout.DataListItem, parent, false);
                 holder.Title = view.FindViewById<TextView>(Resource.Id.ListItemText);
                 holder.Title.Click += (sender, e) => {
-                    ((CategoriesActivity)context).HandleCategoryClick(this[position]);
+                    ((CategoriesActivity)context).HandleCategoryClick(this[holder.position]);
                 };
 
                 holder.Active = view.FindViewById<Switch>(Resource.Id.enabled_swt);
                 holder.Active.CheckedChange += (object sender, CompoundButton.CheckedChangeEventArgs args) => {
-                    CategoryRec category = this[position];
-                    category.Active = args.IsChecked;
-                    Update(position, category);
+                    CategoryRec category = this[holder.position];
+                    category.active = args.IsChecked;
+                    Update(holder.position, category);
                 };
 
                 holder.EditChild = view.FindViewById<ImageButton>(Resource.Id.edit_child_btn);
                 holder.EditChild.Click += (sender, e) => {
-                    ((CategoriesActivity)context).EditCategory(position, this[position]);
+                    ((CategoriesActivity)context).EditCategory(holder.position, this[holder.position]);
                 };
 
                 holder.DeleteChild = view.FindViewById<ImageButton>(Resource.Id.delete_child_btn);
                 holder.DeleteChild.Click += (sender, e) => {
-                    ((CategoriesActivity)context).DeleteCategory(position, this[position]);
+                    ((CategoriesActivity)context).DeleteCategory(holder.position, this[holder.position]);
                 };
 
                 view.Tag = holder;
             }
 
-            holder.Title.Text = items[position].Name;
-            holder.Active.Checked = items[position].Active;
+            holder.Title.Text = items[position].name;
+            holder.Active.Checked = items[position].active;
+            holder.position = position;
 
             return view;
         }
@@ -151,5 +152,6 @@ namespace Tagview
         public Switch Active { get; set; }
         public ImageButton EditChild { get; set; }
         public ImageButton DeleteChild { get; set; }
+        public int position { get; set; }
     }
 }

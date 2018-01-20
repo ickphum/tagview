@@ -63,11 +63,11 @@ namespace Tagview
             AlertDialog.Builder alert = new AlertDialog.Builder(this);
             alert.SetTitle("Edit Tag");
             EditText et = new EditText(this);
-            et.Text = tag.Name;
+            et.Text = tag.name;
 
             alert.SetView(et);
             alert.SetPositiveButton("Update", (senderAlert, args2) => {
-                tag.Name = et.Text;
+                tag.name = et.Text;
                 adapter.Update(position, tag);
             });
             alert.SetNegativeButton("Cancel", (senderAlert, args2) => { });
@@ -78,7 +78,7 @@ namespace Tagview
         public void DeleteTag(int position, TagRec tag)
         {
             AlertDialog.Builder alert = new AlertDialog.Builder(this);
-            alert.SetTitle("Delete Tag '" + tag.Name + "'");
+            alert.SetTitle("Delete Tag '" + tag.name + "'");
 
             alert.SetPositiveButton("Delete", (senderAlert, args2) => {
                 adapter.Delete(position, tag);

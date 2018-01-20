@@ -52,11 +52,11 @@ namespace Tagview
 
         public void HandleSequenceClick(SequenceRec sequence)
         {
-            Android.Widget.Toast.MakeText(this, "Selected " + sequence.Name, Android.Widget.ToastLength.Short).Show();
+            Android.Widget.Toast.MakeText(this, "Selected " + sequence.name, Android.Widget.ToastLength.Short).Show();
             Log.Info(TAG, "ItemClick");
             var sequence_activity = new Intent(this, typeof(SequenceActivity));
-            sequence_activity.PutExtra("Id", sequence.Id);
-            sequence_activity.PutExtra("Name", sequence.Name);
+            sequence_activity.PutExtra("Id", sequence.id);
+            sequence_activity.PutExtra("Name", sequence.name);
             StartActivity(sequence_activity);
         }
 
@@ -65,11 +65,11 @@ namespace Tagview
             AlertDialog.Builder alert = new AlertDialog.Builder(this);
             alert.SetTitle("Edit Sequence");
             EditText et = new EditText(this);
-            et.Text = sequence.Name;
+            et.Text = sequence.name;
 
             alert.SetView(et);
             alert.SetPositiveButton("Update", (senderAlert, args2) => {
-                sequence.Name = et.Text;
+                sequence.name = et.Text;
                 adapter.Update(position, sequence);
             });
             alert.SetNegativeButton("Cancel", (senderAlert, args2) => { });
@@ -80,7 +80,7 @@ namespace Tagview
         public void DeleteSequence(int position, SequenceRec sequence)
         {
             AlertDialog.Builder alert = new AlertDialog.Builder(this);
-            alert.SetTitle("Delete Sequence '" + sequence.Name + "'");
+            alert.SetTitle("Delete Sequence '" + sequence.name + "'");
 
             alert.SetPositiveButton("Delete", (senderAlert, args2) => {
                 adapter.Delete(position, sequence);

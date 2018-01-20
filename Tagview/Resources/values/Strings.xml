@@ -1,6 +1,8 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
-    <string name="ApplicationName">Tagview</string>
+  <string name="ApplicationName">Tagview</string>
+  <string name="SelectDirectory">Select Directory</string>
+  <string name="SelectFile">Select File</string>
   <string-array name="sort_options_array">
     <item>Name</item>
     <item>Date</item>

@@ -13,94 +13,96 @@ namespace Tagview
     [Table(name: "Category")]
     public class CategoryRec
     {
-        [PrimaryKey, AutoIncrement, Column("_id")]
-        public int Id { get; set; }
+        [PrimaryKey, AutoIncrement]
+        public int id { get; set; }
         [MaxLength(15), Unique]
-        public string Name { get; set; }
-        public bool Active { get; set; }
+        public string name { get; set; }
+        public bool active { get; set; }
         public CategoryRec()
         {
-            Name = "";
+            name = "";
         }
-        public CategoryRec(string NewName)
+        public CategoryRec(string newName)
         {
-            Name = NewName;
+            name = newName;
         }
     }
 
     [Table(name: "Tag")]
     public class TagRec
     {
-        [PrimaryKey, AutoIncrement, Column("_id")]
-        public int Id { get; set; }
+        [PrimaryKey, AutoIncrement]
+        public int id { get; set; }
         [MaxLength(15), Unique]
-        public string Name { get; set; }
+        public string name { get; set; }
         [ForeignKey(typeof(CategoryRec))]
-        public int category_id { get; set; }
+        public int categoryId { get; set; }
 
         public TagRec()
         {
-            Name = "";
+            name = "";
         }
-        public TagRec(int Category, string NewName)
+        public TagRec(int category, string newName)
         {
-            category_id = Category;
-            Name = NewName;
+            categoryId = category;
+            name = newName;
         }
     }
 
     [Table(name: "Sequence")]
     public class SequenceRec
     {
-        [PrimaryKey, AutoIncrement, Column("_id")]
-        public int Id { get; set; }
+        [PrimaryKey, AutoIncrement]
+        public int id { get; set; }
         [MaxLength(15), Unique]
-        public string Name { get; set; }
-        public int SortCode { get; set; }
-        public int SlideShowPeriodSecs { get; set; }
+        public string name { get; set; }
+        public int sortCode { get; set; }
+        public int slideShowPeriodSecs { get; set; }
 
         public SequenceRec() { }
 
-        public SequenceRec(string NewName)
+        public SequenceRec(string newName)
         {
-            Name = NewName;
+            name = newName;
         }
     }
 
     [Table(name: "SequenceDir")]
     public class SequenceDirRec
     {
-        [PrimaryKey, AutoIncrement, Column("_id")]
-        public int Id { get; set; }
+        [PrimaryKey, AutoIncrement]
+        public int id { get; set; }
         [ForeignKey(typeof(SequenceRec))]
-        public int SequenceId { get; set; }
+        public int sequenceId { get; set; }
         [MaxLength(200), Unique]
-        public string Directory { get; set; }
-        public bool IncludeChildren { get; set; }
+        public string directory { get; set; }
+        public bool includeChildren { get; set; }
 
-        public SequenceDirRec(int Sequence, string NewDir, bool NewIncludeChildren)
+        public SequenceDirRec() { }
+
+        public SequenceDirRec(int sequence, string newDir, bool newIncludeChildren)
         {
-            SequenceId = Sequence;
-            Directory = NewDir;
-            IncludeChildren = NewIncludeChildren;
+            sequenceId = sequence;
+            directory = newDir;
+            includeChildren = newIncludeChildren;
         }
     }
 
     [Table(name: "Image")]
     public class ImageRec
     {
-        [PrimaryKey, AutoIncrement, Column("_id")]
-        public int Id { get; set; }
+        [PrimaryKey, AutoIncrement]
+        public int id { get; set; }
         [MaxLength(100)]
-        public string Name { get; set; }
+        public string name { get; set; }
         [MaxLength(200)]
-        public string Directory { get; set; }
+        public string directory { get; set; }
 
         public ImageRec() { }
-        public ImageRec(string NewName, string NewDir)
+        public ImageRec(string newName, string newDir)
         {
-            Name = NewName;
-            Directory = NewDir;
+            name = newName;
+            directory = newDir;
         }
     }
 
@@ -152,6 +154,12 @@ namespace Tagview
             int sequence = db.Insert(new SequenceRec("Test"));
             db.Insert(new SequenceDirRec(sequence, "/a/b/c", true));
             db.Insert(new SequenceDirRec(sequence, "/a/b/c1", false));
+            db.Insert(new SequenceDirRec(sequence, "/a/b/d", false));
+            db.Insert(new SequenceDirRec(sequence, "/a/b/e", false));
+            db.Insert(new SequenceDirRec(sequence, "/a/b/f", false));
+            db.Insert(new SequenceDirRec(sequence, "/a/b/g", false));
+            db.Insert(new SequenceDirRec(sequence, "/a/b/h", false));
+            db.Insert(new SequenceDirRec(sequence, "/a/b/i", false));
 
             db.Insert(new ImageRec("match 1 of 3", "/a/b/c"));
             db.Insert(new ImageRec("match 2 of 3", "/a/b/c/d"));
@@ -161,13 +169,13 @@ namespace Tagview
 
             /*
             List<ImageRec> table = db.Query<ImageRec>("select i.* from Image i, Sequence s, SequenceDir sd"
-                + " where s.Name = ? and s._id = sd.SequenceId"
-                + " and ((i.Directory = sd.Directory) or (sd.IncludeChildren = 1 and i.Directory LIKE sd.Directory || '/%'))", "test");
+                + " where s.name = ? and s.id = sd.sequenceId"
+                + " and ((i.directory = sd.directory) or (sd.includeChildren = 1 and i.directory LIKE sd.directory || '/%'))", "test");
 
             Log.Info(TAG, "count = " + table.Count);
 
             foreach (var image in table) {
-                Log.Info(TAG, image.Name);
+                Log.Info(TAG, image.name);
             }
             */
 
@@ -196,7 +204,7 @@ namespace Tagview
 
         public static int AddCategory(CategoryRec newCategory)
         {
-            newCategory.Active = true;
+            newCategory.active = true;
             return db.Insert(newCategory);
         }
 
@@ -208,23 +216,22 @@ namespace Tagview
         public static int DeleteCategory(CategoryRec category)
         {
             // delete children first
-            db.Execute("delete from Tag where category_id = ?", category.Id);
+            db.Execute("delete from Tag where categoryId = ?", category.id);
             return db.Delete(category);
         }
 
-        public static void SetCategoryActive(int Id, bool Active)
+        public static void SetCategoryActive(int id, bool active)
         {
-            Log.Info(TAG, "Id = " + Id + ", Active = " + Active);
-            db.Execute("update Category set Active = ? where _id = ?", Active, Id);
+            Log.Info(TAG, "Id = " + id + ", Active = " + active);
+            db.Execute("update Category set active = ? where id = ?", active, id);
         }
 
         /* Tag methods */
 
-        public static List<TagRec> LoadTags(int category_id)
+        public static List<TagRec> LoadTags(int categoryId)
         {
-            var table = db.Query<TagRec>("select * from Tag where category_id = ?", category_id);
+            var table = db.Query<TagRec>("select * from Tag where categoryId = ?", categoryId);
             return table;
-            //return table.ToList<TagRec>();
         }
         
         public static int AddTag(TagRec newTag)
@@ -263,8 +270,31 @@ namespace Tagview
         public static int DeleteSequence(SequenceRec sequence)
         {
             // delete children first
-            db.Execute("delete from SequenceDir where SequenceId = ?", sequence.Id);
+            db.Execute("delete from SequenceDir where sequenceId = ?", sequence.id);
             return db.Delete(sequence);
+        }
+
+        /* Sequence Dir methods */
+
+        public static List<SequenceDirRec> LoadSequenceDirs(int sequenceId)
+        {
+            var table = db.Query<SequenceDirRec>("select * from SequenceDir where sequenceId = ?", sequenceId);
+            return table;
+        }
+
+        public static int AddSequenceDir(SequenceDirRec newSequenceDir)
+        {
+            return db.Insert(newSequenceDir);
+        }
+
+        public static int UpdateSequenceDir(SequenceDirRec tag)
+        {
+            return db.Update(tag);
+        }
+
+        public static int DeleteSequenceDir(SequenceDirRec tag)
+        {
+            return db.Delete(tag);
         }
 
     }

@@ -9,24 +9,24 @@ using Android.OS;
 using Android.Runtime;
 using Android.Views;
 using Android.Widget;
-using SQLite;
+using Android.Database.Sqlite;
 using Android.Util;
 
 namespace Tagview
 {
-    class SequenceAdapter : BaseAdapter<SequenceRec>
+    class SequenceDirAdapter : BaseAdapter<SequenceDirRec>
     {
-
+        private static string TAG = "SequenceDirAdapter";
         Context context;
-        List<SequenceRec> items;
+        List<SequenceDirRec> items;
 
-        public SequenceAdapter(Context context)
+        public SequenceDirAdapter(Context context)
         {
             this.context = context;
-            items = new List<SequenceRec>();
+            items = new List<SequenceDirRec>();
         }
 
-        public override SequenceRec this[int position] {
+        public override SequenceDirRec this[int position] {
             get { return items[position]; }
         }
 
@@ -35,44 +35,41 @@ namespace Tagview
             return position;
         }
 
-        public void Fill()
+        public void Fill(int sequence_id)
         {
-            items = DataStore.LoadSequences();
+            items = DataStore.LoadSequenceDirs(sequence_id);
+            foreach (var item in items) {
+                Log.Info(TAG, "loaded item " + item.directory);
+            }
         }
 
         public override View GetView(int position, View convertView, ViewGroup parent)
         {
             var view = convertView;
-            SequenceAdapterViewHolder holder = null;
+            SequenceDirAdapterViewHolder holder = null;
 
             if (view != null)
-                holder = view.Tag as SequenceAdapterViewHolder;
+                holder = view.Tag as SequenceDirAdapterViewHolder;
 
             if (holder == null) {
-                holder = new SequenceAdapterViewHolder();
+                Log.Info(TAG, "create holder for position " + position);
+                holder = new SequenceDirAdapterViewHolder();
                 var inflater = context.GetSystemService(Context.LayoutInflaterService).JavaCast<LayoutInflater>();
                 view = inflater.Inflate(Resource.Layout.DataListItem, parent, false);
                 holder.Title = view.FindViewById<TextView>(Resource.Id.ListItemText);
-                holder.Title.Click += (sender, e) => {
-                    ((SequencesActivity)context).HandleSequenceClick(this[holder.position]);
-                };
 
                 view.FindViewById<Switch>(Resource.Id.enabled_swt).Visibility = ViewStates.Gone;
-
-                holder.EditChild = view.FindViewById<ImageButton>(Resource.Id.edit_child_btn);
-                holder.EditChild.Click += (sender, e) => {
-                    ((SequencesActivity)context).EditSequence(holder.position, this[holder.position]);
-                };
+                view.FindViewById<ImageButton>(Resource.Id.edit_child_btn).Visibility = ViewStates.Gone;
 
                 holder.DeleteChild = view.FindViewById<ImageButton>(Resource.Id.delete_child_btn);
                 holder.DeleteChild.Click += (sender, e) => {
-                    ((SequencesActivity)context).DeleteSequence(holder.position, this[holder.position]);
+                    ((SequenceActivity)context).DeleteSequenceDir(holder.position, this[holder.position]);
                 };
 
                 view.Tag = holder;
             }
 
-            holder.Title.Text = items[position].name;
+            holder.Title.Text = items[position].directory + (items[position].includeChildren ? "+" : "");
             holder.position = position;
 
             return view;
@@ -84,53 +81,47 @@ namespace Tagview
             }
         }
 
-        public void Add(SequenceRec sequence)
+        public void Add(SequenceDirRec tag)
+        {
+            items.Add(tag);
+            NotifyDataSetChanged();
+            DataStore.AddSequenceDir(tag);
+        }
+
+        public void Add(int sequence_id, String directory, bool includeChildren)
+        {
+            SequenceDirRec newSequenceDir = new SequenceDirRec(sequence_id, directory, includeChildren);
+            Add(newSequenceDir);
+        }
+
+        public void Update(int position, SequenceDirRec sequenceDir)
         {
             try {
-                DataStore.AddSequence(sequence);
+                DataStore.UpdateSequenceDir(sequenceDir);
             }
             catch (SQLiteException ex) {
-                Log.Error(this.ToString(), "Add failed : " + ex);
+                Log.Error(TAG, "Update failed : " + ex);
                 return;
             }
 
-            items.Add(sequence);
+            items[position] = sequenceDir;
             NotifyDataSetChanged();
         }
 
-        public void Add(String name)
-        {
-            SequenceRec newSequence = new SequenceRec(name);
-            Add(newSequence);
-        }
-
-        public void Update(int position, SequenceRec sequence)
+        public void Delete(int position, SequenceDirRec sequenceDir)
         {
             try {
-                DataStore.UpdateSequence(sequence);
+                DataStore.DeleteSequenceDir(sequenceDir);
             }
             catch (SQLiteException ex) {
-                Log.Error(this.ToString(), "Update failed : " + ex);
+                Log.Error(TAG, "Delete failed : " + ex);
                 return;
             }
 
-            items[position] = sequence;
+            items.Remove(sequenceDir);
             NotifyDataSetChanged();
         }
 
-        public void Delete(int position, SequenceRec sequence)
-        {
-            try {
-                DataStore.DeleteSequence(sequence);
-            }
-            catch (SQLiteException ex) {
-                Log.Error(this.ToString(), "Delete failed : " + ex);
-                return;
-            }
-
-            items.Remove(sequence);
-            NotifyDataSetChanged();
-        }
 
         public void Clear()
         {
@@ -139,12 +130,12 @@ namespace Tagview
 
     }
 
-    class SequenceAdapterViewHolder : Java.Lang.Object
+    class SequenceDirAdapterViewHolder : Java.Lang.Object
     {
         //Your adapter views to re-use
         public TextView Title { get; set; }
-        public ImageButton EditChild { get; set; }
         public ImageButton DeleteChild { get; set; }
         public int position { get; set; }
     }
+
 }
