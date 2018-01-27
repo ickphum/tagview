@@ -127,9 +127,6 @@ namespace Tagview
 			// aapt resource value: 0x7f060024
 			public const int directory_lvw = 2131099684;
 			
-			// aapt resource value: 0x7f060021
-			public const int editText2 = 2131099681;
-			
 			// aapt resource value: 0x7f060006
 			public const int edit_child_btn = 2131099654;
 			
@@ -141,12 +138,6 @@ namespace Tagview
 			
 			// aapt resource value: 0x7f06001a
 			public const int filters = 2131099674;
-			
-			// aapt resource value: 0x7f060020
-			public const int imageButton1 = 2131099680;
-			
-			// aapt resource value: 0x7f060022
-			public const int imageButton2 = 2131099682;
 			
 			// aapt resource value: 0x7f060016
 			public const int imageview_main = 2131099670;
@@ -190,6 +181,9 @@ namespace Tagview
 			// aapt resource value: 0x7f06001d
 			public const int settings = 2131099677;
 			
+			// aapt resource value: 0x7f060021
+			public const int slideShowPeriodSecs_txt = 2131099681;
+			
 			// aapt resource value: 0x7f06001e
 			public const int sort_options_spn = 2131099678;
 			
@@ -207,6 +201,12 @@ namespace Tagview
 			
 			// aapt resource value: 0x7f06000f
 			public const int textView2 = 2131099663;
+			
+			// aapt resource value: 0x7f060020
+			public const int timingDown_btn = 2131099680;
+			
+			// aapt resource value: 0x7f060022
+			public const int timingUp_btn = 2131099682;
 			
 			// aapt resource value: 0x7f060001
 			public const int title_tvw = 2131099649;

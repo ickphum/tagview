@@ -14,7 +14,7 @@ namespace Tagview
     public class MainActivity : Activity, GestureDetector.IOnGestureListener
     {
         private static string TAG = "MainActivity";
-        public ImageView imageView;
+        public ImageShow imageView;
         private GestureDetector _gestureDetector;
 
         protected override void OnCreate(Bundle bundle)
@@ -25,7 +25,7 @@ namespace Tagview
             SetContentView(Resource.Layout.Main);
             _gestureDetector = new GestureDetector(this);
 
-            this.imageView = FindViewById<ImageView>(Resource.Id.imageview_main);
+            this.imageView = FindViewById<ImageShow>(Resource.Id.imageview_main);
             this.imageView.SetActivity(this);
             this.imageView.names = new[] { "Ian", "John", "Paul", "Wasi", "Mark" };
 
@@ -65,7 +65,8 @@ namespace Tagview
         }
         public bool OnFling(MotionEvent e1, MotionEvent e2, float velocityX, float velocityY)
         {
-            Log.Info(TAG, "OnFling: " + String.Format("Fling velocity: {0} x {1}", velocityX, velocityY));
+            Log.Info(TAG, "OnFling: " + String.Format("Fling velocity: x {0}, y {1}, e1 {2},{3}, e2 {4},{5}",
+                velocityX, velocityY, e1.GetX(), e1.GetY(), e2.GetX(), e2.GetY()));
             return true;
         }
         public void OnLongPress(MotionEvent e) {

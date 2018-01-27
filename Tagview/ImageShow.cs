@@ -13,9 +13,9 @@ using System;
 
 namespace Tagview
 {
-    public class ImageView  : View
+    public class ImageShow  : View
     {
-        private static string TAG = "ImageView";
+        private static string TAG = "ImageShow";
 
         Context mContext;
         Activity mActivity;
@@ -25,6 +25,8 @@ namespace Tagview
         float activeX = 0;
         float activeY = 0;
         float activeRadius = 60;
+        float displayScale;
+
         ValueAnimator animatorX;
         ValueAnimator animatorY;
         ValueAnimator animatorRadius;
@@ -34,18 +36,54 @@ namespace Tagview
 
         public string[] names { get; set; }
 
-        public ImageView(Context context) :
+        private static readonly List<Color> KellysMaxContrastSet = new List<Color>
+            {
+            UIntToColor(0xFFFFB300), //Vivid Yellow
+            UIntToColor(0xFFFFDA84), //Vivid Yellow (2)
+            UIntToColor(0xFF803E75), //Strong Purple
+            UIntToColor(0xFFFF6800), //Vivid Orange
+            UIntToColor(0xFFA6BDD7), //Very Light Blue
+            UIntToColor(0xFFC10020), //Vivid Red
+            UIntToColor(0xFFCEA262), //Grayish Yellow
+            UIntToColor(0xFF817066), //Medium Gray
+
+            //The following will not be good for people with defective color vision
+            UIntToColor(0xFF007D34), //Vivid Green
+            UIntToColor(0xFFF6768E), //Strong Purplish Pink
+            UIntToColor(0xFF00538A), //Strong Blue
+            UIntToColor(0xFFFF7A5C), //Strong Yellowish Pink
+            UIntToColor(0xFF53377A), //Strong Violet
+            UIntToColor(0xFFFF8E00), //Vivid Orange Yellow
+            UIntToColor(0xFFB32851), //Strong Purplish Red
+            UIntToColor(0xFFF4C800), //Vivid Greenish Yellow
+            UIntToColor(0xFF7F180D), //Strong Reddish Brown
+            UIntToColor(0xFF93AA00), //Vivid Yellowish Green
+            UIntToColor(0xFF593315), //Deep Yellowish Brown
+            UIntToColor(0xFFF13A13), //Vivid Reddish Orange
+            UIntToColor(0xFF232C16), //Dark Olive Green
+        };
+
+        static public Color UIntToColor(uint color)
+        {
+            Byte a = (byte)(color >> 24);
+            Byte r = (byte)(color >> 16);
+            Byte g = (byte)(color >> 8);
+            Byte b = (byte)(color >> 0);
+            return new Color(r, g, b, a);
+        }
+
+        public ImageShow(Context context) :
         base(context)
         {
             init(context);
         }
-        public ImageView(Context context, IAttributeSet attrs) :
+        public ImageShow(Context context, IAttributeSet attrs) :
         base(context, attrs)
         {
             init(context);
         }
 
-        public ImageView(Context context, IAttributeSet attrs, int defStyle) :
+        public ImageShow(Context context, IAttributeSet attrs, int defStyle) :
         base(context, attrs, defStyle)
         {
             init(context);
@@ -62,6 +100,7 @@ namespace Tagview
             animatorRadius.SetDuration(1000);
             animatorX.SetInterpolator(new DecelerateInterpolator());
             animatorY.SetInterpolator(new BounceInterpolator());
+            displayScale = ctx.Resources.DisplayMetrics.Density;
 
             animatorRadius.SetIntValues(new[] { radius, radius_big });
             animatorRadius.Update += (sender, e) => {
@@ -177,10 +216,8 @@ namespace Tagview
             initPositions();
 
             var paintText = new Paint() { Color = Color.Black };
-            // Get the screen's density scale
-            var scale = mContext.Resources.DisplayMetrics.Density;
             // Convert the dps to pixels, based on density scale
-            var textSizePx = (int)(30f * scale);
+            var textSizePx = (int)(30f * displayScale);
             paintText.TextSize = textSizePx;
             paintText.TextAlign = Paint.Align.Center;
 
@@ -208,16 +245,65 @@ namespace Tagview
                 canvas.DrawCircle(activeX, activeY, activeRadius, paintCircle);
 
                 var paintText = new Paint() { Color = Color.Black };
-                //  the screen's density scale
-                var scale = mContext.Resources.DisplayMetrics.Density;
                 // Convert the dps to pixels, based on density scale
-                var textSizePx = (int)(20f * scale);
+                var textSizePx = (int)(20f * displayScale);
+
                 var name = names[activeIndex];
                 paintText.TextSize = textSizePx;
                 paintText.TextAlign = Paint.Align.Center;
                 canvas.DrawText(name, activeX, activeY + radius / 2, paintText);
 
             }
+        }
+
+        private void DrawRoundedButton(Canvas canvas, float left, float top, float width, float height, int color)
+        {
+            float radiusProportion = 0.2f;
+
+            Color mainColor = KellysMaxContrastSet[color];
+            Single[] HSV = new Single[3];
+            Color.ColorToHSV(mainColor, HSV);
+            Log.Info(TAG, String.Format("hsv for color {0} = {1},{2},{3}", color, HSV[0], HSV[1], HSV[2]));
+            Int32 alpha = Color.GetAlphaComponent(mainColor.ToArgb());
+            Single saveSaturation = HSV[1];
+            Single borderWidth = width / 10;
+            HSV[1] /= 2;
+            Color shine = Color.HSVToColor(alpha, HSV);
+            HSV[1] = saveSaturation;
+            HSV[2] /= 2;
+            Color shadow = Color.HSVToColor(alpha, HSV);
+            
+            canvas.DrawRoundRect(left, top, left + width, top + height,
+                width * radiusProportion,
+                height * radiusProportion,
+                new Paint() { Color = shine });
+
+            Path shadowClip = new Path();
+            shadowClip.MoveTo(left + width, top);
+            shadowClip.LineTo(left, top + height);
+            shadowClip.LineTo(left + width, top + height);
+            shadowClip.Close();
+            canvas.Save();
+            canvas.ClipPath(shadowClip);
+
+            canvas.DrawRoundRect(left, top, left + width, top + height,
+                width * radiusProportion,
+                height * radiusProportion,
+                new Paint() { Color = shadow });
+
+            canvas.Restore();
+
+            canvas.DrawRoundRect(left + borderWidth, top + borderWidth, left + width - borderWidth, top + height - borderWidth,
+                (width - borderWidth) * radiusProportion,
+                (height - borderWidth) * radiusProportion,
+                new Paint() { Color = mainColor });
+
+            var paintText = new Paint() { Color = Color.White };
+            var textSizePx = (int)(15f * displayScale);
+            paintText.TextSize = textSizePx;
+            paintText.TextAlign = Paint.Align.Center;
+            canvas.DrawText(color.ToString(), left + width / 2, top + height / 2 + textSizePx / 3, paintText);
+
         }
 
         protected override void OnDraw(Canvas canvas)
@@ -250,6 +336,11 @@ namespace Tagview
 
             drawSmallCircles(canvas);
             drawBigCircle(canvas);
+
+            for (int i = 0; i < 10; i++) {
+                DrawRoundedButton(canvas, 50f, 50f + i * 200f, 150f, 150f, i);
+            }
+            
         }
 
     }

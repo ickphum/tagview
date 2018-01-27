@@ -65,7 +65,10 @@ namespace Tagview
             AlertDialog.Builder alert = new AlertDialog.Builder(this);
             alert.SetTitle("Edit Category");
             EditText et = new EditText(this);
-            et.Text = category.name;
+            String name = category.name;
+            if (category.single)
+                name += "; single";
+            et.Text = name;
 
             alert.SetView(et);
             alert.SetPositiveButton("Update", (senderAlert, args2) => {

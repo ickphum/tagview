@@ -18,14 +18,18 @@ namespace Tagview
         [MaxLength(15), Unique]
         public string name { get; set; }
         public bool active { get; set; }
+        public bool single { get; set; }
         public CategoryRec()
         {
             name = "";
         }
-        public CategoryRec(string newName)
+        public CategoryRec(string name, bool single)
         {
-            name = newName;
+            this.name = name;
+            this.single = single;
+            active = true;
         }
+        public CategoryRec(string name) : this(name, false) { }
     }
 
     [Table(name: "Tag")]
@@ -49,6 +53,8 @@ namespace Tagview
         }
     }
 
+    enum SortType { Name, Date, Size, Orientation };
+
     [Table(name: "Sequence")]
     public class SequenceRec
     {
@@ -57,13 +63,17 @@ namespace Tagview
         [MaxLength(15), Unique]
         public string name { get; set; }
         public int sortCode { get; set; }
-        public int slideShowPeriodSecs { get; set; }
+        public int reverseSort { get; set; }
+        public float slideShowPeriodSecs { get; set; }
 
         public SequenceRec() { }
 
         public SequenceRec(string newName)
         {
             name = newName;
+            sortCode = (int)SortType.Name;
+            reverseSort = 0;
+            slideShowPeriodSecs = 10;
         }
     }
 
@@ -210,6 +220,22 @@ namespace Tagview
 
         public static int UpdateCategory(CategoryRec category)
         {
+            category.single = false;
+
+            string[] tokens = category.name.Split(new Char [] { ';', ' '});
+            List<String> realTokens = new List<String>();
+            foreach (string token in tokens) {
+                if (token.Trim() != "")
+                    realTokens.Add(token);
+            }
+            if (realTokens.Count > 1) {
+                category.name = realTokens[0];
+                realTokens.RemoveAt(0);
+                foreach (string token in realTokens) {
+                    if (token.Equals("single"))
+                        category.single = true;
+                }
+            }
             return db.Update(category);
         }
 
@@ -272,6 +298,11 @@ namespace Tagview
             // delete children first
             db.Execute("delete from SequenceDir where sequenceId = ?", sequence.id);
             return db.Delete(sequence);
+        }
+
+        internal static SequenceRec FindSequence(int sequenceId)
+        {
+            return db.Find<SequenceRec>(sequenceId);                
         }
 
         /* Sequence Dir methods */

@@ -10,6 +10,7 @@ using Android.Runtime;
 using Android.Views;
 using Android.Widget;
 using Android.Util;
+using Newtonsoft.Json;
 
 namespace Tagview
 {
@@ -52,11 +53,8 @@ namespace Tagview
 
         public void HandleSequenceClick(SequenceRec sequence)
         {
-            Android.Widget.Toast.MakeText(this, "Selected " + sequence.name, Android.Widget.ToastLength.Short).Show();
-            Log.Info(TAG, "ItemClick");
             var sequence_activity = new Intent(this, typeof(SequenceActivity));
-            sequence_activity.PutExtra("Id", sequence.id);
-            sequence_activity.PutExtra("Name", sequence.name);
+            sequence_activity.PutExtra("sequenceId", sequence.id);
             StartActivity(sequence_activity);
         }
 

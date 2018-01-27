@@ -44,20 +44,21 @@
             android:layout_weight="3"
             android:layout_width="0dp"
             android:layout_height="wrap_content"
-            android:id="@+id/imageButton1" />
-        <EditText
+            android:id="@+id/timingDown_btn" />
+        <TextView
             android:text="10"
-            android:inputType="numberDecimal"
+            android:textAppearance="?android:attr/textAppearanceLarge"
             android:layout_weight="11"
             android:layout_width="0dp"
             android:layout_height="wrap_content"
-            android:id="@+id/editText2" />
+            android:id="@+id/slideShowPeriodSecs_txt"
+            android:gravity="center_horizontal" />
         <ImageButton
             android:src="@drawable/ic_expand_less_white_24dp"
             android:layout_weight="3"
             android:layout_width="0dp"
             android:layout_height="wrap_content"
-            android:id="@+id/imageButton2" />
+            android:id="@+id/timingUp_btn" />
     </LinearLayout>
     <LinearLayout
         android:orientation="horizontal"

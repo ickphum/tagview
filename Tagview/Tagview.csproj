@@ -88,7 +88,7 @@
     <Compile Include="SettingsActivity.cs" />
     <Compile Include="CategoriesActivity.cs" />
     <Compile Include="DataStore.cs" />
-    <Compile Include="ImageView.cs" />
+    <Compile Include="ImageShow.cs" />
     <Compile Include="MainActivity.cs" />
     <Compile Include="MenuDialog.cs" />
     <Compile Include="Resources\Resource.Designer.cs" />
