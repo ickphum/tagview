@@ -23,5 +23,10 @@
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:id="@+id/clear_database_btn" />
+      <Button
+          android:text="Reset Settings"
+          android:layout_width="match_parent"
+          android:layout_height="wrap_content"
+          android:id="@+id/reset_settings_btn" />
     </LinearLayout>
 </LinearLayout>

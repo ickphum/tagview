@@ -163,6 +163,9 @@ namespace Tagview
 			// aapt resource value: 0x7f06000b
 			public const int parent_spn = 2131099659;
 			
+			// aapt resource value: 0x7f060027
+			public const int reset_settings_btn = 2131099687;
+			
 			// aapt resource value: 0x7f060018
 			public const int restart = 2131099672;
 			

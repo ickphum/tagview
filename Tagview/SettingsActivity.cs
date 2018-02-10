@@ -33,12 +33,23 @@ namespace Tagview
                     Toast.MakeText(this, "Database cleared.", ToastLength.Short).Show();
                 });
 
-                alert.SetNegativeButton("Cancel", (senderAlert, args2) => {
+                Dialog dialog = alert.Create();
+                dialog.Show();
+            };
+
+            FindViewById<Button>(Resource.Id.reset_settings_btn).Click += (object sender, EventArgs args) => {
+                AlertDialog.Builder alert = new AlertDialog.Builder(this);
+                alert.SetTitle("OK To Reset Preferences");
+                alert.SetMessage("This will restore all preferences to their initial values. Is this OK?");
+                alert.SetPositiveButton("Reset", (senderAlert, args2) => {
+                    MainActivity.ResetPreferences();
+                    Toast.MakeText(this, "Preferences reset.", ToastLength.Short).Show();
                 });
 
                 Dialog dialog = alert.Create();
                 dialog.Show();
             };
+
         }
     }
 }

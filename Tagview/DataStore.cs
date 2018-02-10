@@ -153,13 +153,23 @@ namespace Tagview
             db.CreateTable<SequenceDirRec>();
             db.CreateTable<ImageRec>();
 
-            int general = AddCategory(new CategoryRec("General"));
-            AddTag(new TagRec(general, "Funny"));
-            AddTag(new TagRec(general, "Pretty"));
-            AddTag(new TagRec(general, "Cold"));
+            int category_id = AddCategory(new CategoryRec("General"));
+            AddTag(new TagRec(category_id, "Funny"));
+            AddTag(new TagRec(category_id, "Sad"));
+            AddTag(new TagRec(category_id, "Cold"));
+            AddTag(new TagRec(category_id, "Hot"));
+            AddTag(new TagRec(category_id, "Scenic"));
+            AddTag(new TagRec(category_id, "Beach"));
+            AddTag(new TagRec(category_id, "Trees"));
 
-            AddCategory(new CategoryRec("Holiday"));
-            AddCategory(new CategoryRec("Family"));
+            category_id = AddCategory(new CategoryRec("Holiday"));
+            AddTag(new TagRec(category_id, "Hong Kong"));
+            AddTag(new TagRec(category_id, "Tokyo"));
+
+            category_id = AddCategory(new CategoryRec("Family"));
+            AddTag(new TagRec(category_id, "Ian"));
+            AddTag(new TagRec(category_id, "Charmaine"));
+            AddTag(new TagRec(category_id, "Hamish"));
 
             int sequence = db.Insert(new SequenceRec("Test"));
             db.Insert(new SequenceDirRec(sequence, "/a/b/c", true));
@@ -215,7 +225,8 @@ namespace Tagview
         public static int AddCategory(CategoryRec newCategory)
         {
             newCategory.active = true;
-            return db.Insert(newCategory);
+            db.Insert(newCategory);
+            return newCategory.id;
         }
 
         public static int UpdateCategory(CategoryRec category)
