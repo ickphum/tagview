@@ -3,6 +3,20 @@
   <string name="ApplicationName">Tagview</string>
   <string name="SelectDirectory">Select Directory</string>
   <string name="SelectFile">Select File</string>
+  <string name="radiusProportion">radiusProportion</string>
+  <string name="buttonSurroundTint">buttonSurroundTint</string>
+  <string name="buttonBorderProportion">buttonBorderProportion</string>
+  <string name="categoryListProportion">categoryListProportion</string>
+  <string name="categoryListMarginProportion">categoryListMarginProportion</string>
+  <string name="categorySelectionAnimationPeriod">categorySelectionAnimationPeriod</string>
+  <string name="categoryListAnimationPeriod">categoryListAnimationPeriod</string>
+  <string name="maxCacheEntries">maxCacheEntries</string>
+  <string name="version">version</string>
+  <string name="maxCacheEntries">maxCacheEntries</string>
+  <string name="currentDirectory">currentDirectory</string>
+  <string name="currentFile">currentFile</string>
+  <string name="currentIndex">currentIndex</string>
+  <string name="currentSequenceId">currentSequenceId</string>
   <string-array name="sort_options_array">
     <item>Name</item>
     <item>Date</item>

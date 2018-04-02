@@ -11,6 +11,8 @@ using Android.App;
 using Android.OS;
 using System;
 using System.Linq;
+using Com.Bumptech.Glide.Request.Target;
+using Android.Preferences;
 
 namespace Tagview
 {
@@ -22,7 +24,11 @@ namespace Tagview
         Activity mActivity;
 
         float displayScale;
+        int displayWidth;
+        int displayHeight;
 
+        // setting labels for preferences file
+        /*
         public static string radiusProportionSetting = "radiusProportion";
         public static string buttonSurroundTintSetting = "buttonSurroundTint";
         public static string buttonBorderProportionSetting = "buttonBorderProportion";
@@ -30,6 +36,11 @@ namespace Tagview
         public static string categoryListMarginProportionSetting = "categoryListMarginProportion";
         public static string categorySelectionAnimationPeriodSetting = "categorySelectionAnimationPeriod";
         public static string categoryListAnimationPeriodSetting = "categoryListAnimationPeriod";
+        public static string currentDirectorySetting = "currentDirectory";
+        public static string currentFileSetting = "currentFile";
+        public static string currentSequenceIdSetting = "currentSequenceId";
+        public static string currentIndexSetting = "currentIndex";
+        */
 
         float radiusProportion;
         float buttonSurroundTint;
@@ -37,16 +48,21 @@ namespace Tagview
         float categoryListProportion;
         float categoryListMarginProportion;
 
-        Rect categoryListRect;
+        // this flag tells the other routines it's safe to use the db-sourced data,
+        // otherwise it's being changed by the background thread.
+        bool categoriesReady = false;
         List<CategoryRec> categories;
-        List<Rect> categoryRects;
         List<List<TagRec>> categoryTags;
+        Rect categoryListRect;
+        List<Rect> categoryRects;
         List<Rect> tagRects;
         Rect currentCategoryRect;
 
         Rect tagWheelRect;
 
+        BitmapCache bitmapCache;
         Bitmap currentBitmap;
+        Rect currentBitmapRect;
 
         int categoryListTop;
         ValueAnimator categoryListAnimator;
@@ -143,132 +159,185 @@ namespace Tagview
 
             LoadPreferences();
 
-            int displayWidth = ctx.Resources.DisplayMetrics.WidthPixels;
-            int displayHeight = ctx.Resources.DisplayMetrics.HeightPixels;
+            displayWidth = ctx.Resources.DisplayMetrics.WidthPixels;
+            displayHeight = ctx.Resources.DisplayMetrics.HeightPixels;
             categoryListRect = new Rect(0, 0, (int)(displayWidth * categoryListProportion), displayHeight);
             tagWheelRect = new Rect(categoryListRect.Width(), 0, displayWidth, displayWidth - categoryListRect.Width());
             categoryRects = new List<Rect>();
             tagRects = new List<Rect>();
 
-            categoryListAnimator = new ValueAnimator();
-            categoryListAnimator.SetDuration(categoryListAnimationPeriod);
-            categoryListAnimator.SetInterpolator(new DecelerateInterpolator());
-            categoryListAnimator.SetIntValues(0, ctx.Resources.DisplayMetrics.HeightPixels);
-            categoryListAnimator.Update += (sender, e) => {
-                categoryListTop = (int) e.Animation.AnimatedValue;
-                Invalidate();
-            };
-            categoryListAnimator.AnimationEnd += (sender, e) => {
-                categoryListState = categoryListState == categoryListStates.Hiding 
-                    ? categoryListStates.Hidden 
-                    : categoryListStates.Shown;
-            };
+            // create animators
+            {
 
-            currentCategoryXAnimator = new ValueAnimator();
-            currentCategoryXAnimator.SetDuration(categorySelectionAnimationPeriod);
-            currentCategoryXAnimator.SetInterpolator(new DecelerateInterpolator());
-            currentCategoryXAnimator.Update += (sender, e) => {
-                currentCategoryX = (int)e.Animation.AnimatedValue;
-                Invalidate();
-            };
+                categoryListAnimator = new ValueAnimator();
+                categoryListAnimator.SetDuration(categoryListAnimationPeriod);
+                categoryListAnimator.SetInterpolator(new DecelerateInterpolator());
+                categoryListAnimator.SetIntValues(0, ctx.Resources.DisplayMetrics.HeightPixels);
+                categoryListAnimator.Update += (sender, e) => {
+                    categoryListTop = (int)e.Animation.AnimatedValue;
+                    Invalidate();
+                };
+                categoryListAnimator.AnimationEnd += (sender, e) => {
+                    categoryListState = categoryListState == categoryListStates.Hiding
+                        ? categoryListStates.Hidden
+                        : categoryListStates.Shown;
+                };
 
-            currentCategoryYAnimator = new ValueAnimator();
-            currentCategoryYAnimator.SetDuration(categorySelectionAnimationPeriod);
-            currentCategoryYAnimator.SetInterpolator(new DecelerateInterpolator());
-            currentCategoryYAnimator.Update += (sender, e) => {
-                currentCategoryY = (int)e.Animation.AnimatedValue;
-                Invalidate();
-            };
+                currentCategoryXAnimator = new ValueAnimator();
+                currentCategoryXAnimator.SetDuration(categorySelectionAnimationPeriod);
+                currentCategoryXAnimator.SetInterpolator(new DecelerateInterpolator());
+                currentCategoryXAnimator.Update += (sender, e) => {
+                    currentCategoryX = (int)e.Animation.AnimatedValue;
+                    Invalidate();
+                };
 
-            oldCurrentCategoryXAnimator = new ValueAnimator();
-            oldCurrentCategoryXAnimator.SetDuration(categorySelectionAnimationPeriod);
-            oldCurrentCategoryXAnimator.SetInterpolator(new DecelerateInterpolator());
-            oldCurrentCategoryXAnimator.Update += (sender, e) => {
-                oldCurrentCategoryX = (int)e.Animation.AnimatedValue;
-                Invalidate();
-            };
-            oldCurrentCategoryXAnimator.AnimationEnd += (sender, e) => {
-                oldCurrentCategoryIndex = -1;
-            };
+                currentCategoryYAnimator = new ValueAnimator();
+                currentCategoryYAnimator.SetDuration(categorySelectionAnimationPeriod);
+                currentCategoryYAnimator.SetInterpolator(new DecelerateInterpolator());
+                currentCategoryYAnimator.Update += (sender, e) => {
+                    currentCategoryY = (int)e.Animation.AnimatedValue;
+                    Invalidate();
+                };
 
-            oldCurrentCategoryYAnimator = new ValueAnimator();
-            oldCurrentCategoryYAnimator.SetDuration(categorySelectionAnimationPeriod);
-            oldCurrentCategoryYAnimator.SetInterpolator(new DecelerateInterpolator());
-            oldCurrentCategoryYAnimator.Update += (sender, e) => {
-                oldCurrentCategoryY = (int)e.Animation.AnimatedValue;
-            };
+                oldCurrentCategoryXAnimator = new ValueAnimator();
+                oldCurrentCategoryXAnimator.SetDuration(categorySelectionAnimationPeriod);
+                oldCurrentCategoryXAnimator.SetInterpolator(new DecelerateInterpolator());
+                oldCurrentCategoryXAnimator.Update += (sender, e) => {
+                    oldCurrentCategoryX = (int)e.Animation.AnimatedValue;
+                    Invalidate();
+                };
+                oldCurrentCategoryXAnimator.AnimationEnd += (sender, e) => {
+                    oldCurrentCategoryIndex = -1;
+                };
 
-            tagLabelRadiusAnimator = new ValueAnimator();
-            tagLabelRadiusAnimator.SetDuration(categorySelectionAnimationPeriod);
-            tagLabelRadiusAnimator.SetInterpolator(new DecelerateInterpolator());
-            tagLabelRadiusAnimator.Update += (sender, e) => {
-                tagLabelRadius = (int)e.Animation.AnimatedValue;
-            };
+                oldCurrentCategoryYAnimator = new ValueAnimator();
+                oldCurrentCategoryYAnimator.SetDuration(categorySelectionAnimationPeriod);
+                oldCurrentCategoryYAnimator.SetInterpolator(new DecelerateInterpolator());
+                oldCurrentCategoryYAnimator.Update += (sender, e) => {
+                    oldCurrentCategoryY = (int)e.Animation.AnimatedValue;
+                };
 
-            tagStartAngleAnimator = new ValueAnimator();
-            tagStartAngleAnimator.SetDuration(categorySelectionAnimationPeriod);
-            tagStartAngleAnimator.SetInterpolator(new DecelerateInterpolator());
-            tagStartAngleAnimator.SetFloatValues((float)Math.PI / 2, 0);
-            tagStartAngleAnimator.Update += (sender, e) => {
-                tagStartAngle = (float)e.Animation.AnimatedValue;
-            };
+                tagLabelRadiusAnimator = new ValueAnimator();
+                tagLabelRadiusAnimator.SetDuration(categorySelectionAnimationPeriod);
+                tagLabelRadiusAnimator.SetInterpolator(new DecelerateInterpolator());
+                tagLabelRadiusAnimator.Update += (sender, e) => {
+                    tagLabelRadius = (int)e.Animation.AnimatedValue;
+                };
+
+                tagStartAngleAnimator = new ValueAnimator();
+                tagStartAngleAnimator.SetDuration(categorySelectionAnimationPeriod);
+                tagStartAngleAnimator.SetInterpolator(new DecelerateInterpolator());
+                tagStartAngleAnimator.SetFloatValues((float)Math.PI / 2, 0);
+                tagStartAngleAnimator.Update += (sender, e) => {
+                    tagStartAngle = (float)e.Animation.AnimatedValue;
+                };
+
+            }
 
             displayScale = ctx.Resources.DisplayMetrics.Density;
 
-            var file_activity = new Intent(ctx, typeof(SelectFileActivity));
-            file_activity.PutExtra("directoriesOnly", true);
-            ((MainActivity)ctx).StartActivityForResult(file_activity, 1);
+            // prepare the current directory, if any
+            PrepareDirectory();
+            
+            //if (!PrepareCurrentBitmap(0)) {
 
+            /*
+                var file_activity = new Intent(mContext, typeof(SelectFileActivity));
+                file_activity.PutExtra("directoriesOnly", true);
 
-            var internalStorageRoot = Android.OS.Environment.ExternalStorageDirectory.Path;
-            var cameraDir = System.IO.Path.Combine(internalStorageRoot, "DCIM", "Camera");
-            // var mounts = System.IO.File.ReadAllText("/proc/mounts");
-            // Log.Info(TAG, "mounts = " + mounts);
-            // /storage/25AD-18F8 is the external SD root as found from /proc/mounts
-            string[] files = System.IO.Directory.GetFiles(cameraDir);
-            Log.Info(TAG, "init file count = " + files.Length);
-            //foreach (string file in files) {
-            //    Log.Info(TAG, "file = " + file);
+                // load will trigger if dir chosen
+                ((MainActivity)mContext).StartActivityForResult(file_activity, MainActivity.directorySelection);
+            */
+
             //}
-            currentBitmap = BitmapFactory.DecodeFile(files[0]);
-
-            RefreshCategories(false);
-
-            // /mnt/media_rw/25AD-18F8 /storage/25AD-18F8
-
+            
         }
 
         public void LoadPreferences()
         {
             // initialise the view settings from preferences
             Log.Info(TAG, "LoadPreferences");
-            var prefs = Application.Context.GetSharedPreferences(MainActivity.PACKAGE, FileCreationMode.Private);
-            radiusProportion = prefs.GetFloat(ImageShow.radiusProportionSetting, 0.3f);
-            buttonSurroundTint = prefs.GetFloat(ImageShow.buttonSurroundTintSetting, 0.7f);
-            buttonBorderProportion = prefs.GetFloat(ImageShow.buttonBorderProportionSetting, 0.07f);
-            categoryListProportion = prefs.GetFloat(ImageShow.categoryListProportionSetting, 0.24f);
-            Log.Info(TAG, "categoryListProportion now " + categoryListProportion);
-            categoryListMarginProportion = prefs.GetFloat(ImageShow.categoryListMarginProportionSetting, 0.08f);
-            categorySelectionAnimationPeriod = prefs.GetInt(ImageShow.categorySelectionAnimationPeriodSetting, 500);
-            categoryListAnimationPeriod = prefs.GetInt(ImageShow.categoryListAnimationPeriodSetting, 700);
+            var prefs = PreferenceManager.GetDefaultSharedPreferences(Application.Context);
+
+            radiusProportion = MainActivity.GetFloatPref(Resource.String.radiusProportion, 0.3f, null);
+            buttonSurroundTint = MainActivity.GetFloatPref(Resource.String.buttonSurroundTint, 0.7f, prefs);
+            buttonBorderProportion = MainActivity.GetFloatPref(Resource.String.buttonBorderProportion, 0.07f, prefs);
+            categoryListProportion = MainActivity.GetFloatPref(Resource.String.categoryListProportion, 0.24f, prefs);
+            categoryListMarginProportion = MainActivity.GetFloatPref(Resource.String.categoryListMarginProportion, 0.08f, prefs);
+            categorySelectionAnimationPeriod = MainActivity.GetIntPref(Resource.String.categorySelectionAnimationPeriod, 500, prefs);
+            categoryListAnimationPeriod = MainActivity.GetIntPref(Resource.String.categoryListAnimationPeriod, 700, prefs);
+
             return;
         }
 
-        public void SetActivity(Activity activity)
+        public void PrepareDirectory()
         {
-            mActivity = activity;
+            // creating the cache will load the current directory/sequence, load the initial
+            // bitmap and queue the background loading of the adjacent images for the cache
+            Log.Info(TAG, "PrepareDirectory for currentDirectory");
+            bitmapCache = new BitmapCache(displayWidth, displayHeight);
+            PrepareCurrentBitmap(0);
+        }
+
+        public void PrepareDirectory(String directory)
+        {
+            // creating the cache with the specified directory, load the initial
+            // bitmap and queue the background loading of the adjacent images for the cache
+            Log.Info(TAG, "PrepareDirectory for new directory " + directory);
+            bitmapCache = new BitmapCache(displayWidth, displayHeight, directory);
+            PrepareCurrentBitmap(0);
+        }
+
+        private Boolean PrepareCurrentBitmap(int indexIncrement) {
+            Log.Info(TAG, "PrepareCurrentBitmap " + indexIncrement);
+
+            currentBitmap = bitmapCache.MoveToBitmap(indexIncrement);
+
+            if (currentBitmap == null) {
+                Log.Error(TAG, "LoadCachedBitmap ret'd null");
+                return false;
+            }
+            else {
+                
+                float bitmapW = currentBitmap.Width;
+                float bitmapH = currentBitmap.Height;
+                //Log.Info("ImageView.OnDraw", "canvas size = " + canvasW + "x" + canvasH);
+                float canvasRatio = (float)displayWidth / (float)displayHeight;
+                float bitmapRatio = (float)bitmapW / (float)bitmapH;
+                //Log.Info("ImageView.OnDraw", "bm size = " + bitmapW + "x" + bitmapH);
+                float bitmapScale = bitmapRatio > canvasRatio
+                    ? displayWidth / bitmapW
+                    : displayHeight / bitmapH;
+                //Log.Info("ImageView.OnDraw", "bmr = " + bitmapRatio + ", bms = " + bitmapScale);
+                currentBitmapRect = new Rect(
+                    (int)(bitmapRatio > canvasRatio ? 0 : (displayWidth - (bitmapW * bitmapScale)) / 2),
+                    (int)(bitmapRatio > canvasRatio ? (displayHeight - (bitmapH * bitmapScale)) / 2 : 0),
+                    (int)(bitmapRatio > canvasRatio ? displayWidth - 1 : displayWidth - ((displayWidth - (bitmapW * bitmapScale)) / 2)),
+                    (int)(bitmapRatio > canvasRatio ? displayHeight - ((displayHeight - (bitmapH * bitmapScale)) / 2) : displayHeight - 1));
+
+                Invalidate();
+                Log.Info(TAG, "bitmap prepared ok");
+                return true;
+            }
         }
 
         internal void RefreshCategories(bool invalidate)
         {
+            categoriesReady = false;
+            Log.Info(TAG, "RefreshCategories " + invalidate);
             categories = DataStore.LoadCategories();
             categoryTags = new List<List<TagRec>>();
             foreach (var category in categories.Select((x, i) => new { rec = x, index = i })) {
                 List<TagRec> tags = DataStore.LoadTags(category.rec.id);
                 categoryTags.Add(tags);
             }
-            if (invalidate)
-                Invalidate();
+            categoriesReady = true;
+            if (invalidate) {
+                ((MainActivity)Context).RunOnUiThread(() => {
+                    Log.Info(TAG, "Invalidate on UI thread");
+                    Invalidate();
+                });
+            }
         }
 
         public void HandleSingleTap(MotionEvent e)
@@ -322,7 +391,18 @@ namespace Tagview
             foreach (var tag in tagRects.Select((x, i) => new { rect = x, index = i })) {
                 if (tag.rect.Contains(eventX, eventY)) {
                     Log.Info(TAG, "toggle tag " + tag.index);
+                    List<TagRec> tags = categoryTags[currentCategoryIndex];
+                    bitmapCache.ToggleImageTag(tags[tag.index].id);
+                    Invalidate();
+                    return;
                 }
+            }
+
+            // open new dir
+            if (currentBitmap == null) {
+                var file_activity = new Intent(mContext, typeof(SelectFileActivity));
+                file_activity.PutExtra("directoriesOnly", true);
+                ((MainActivity)mContext).StartActivityForResult(file_activity, 1);
             }
 
             return;
@@ -332,32 +412,39 @@ namespace Tagview
         {
 
             if (categoryListRect.Contains((int)e1.GetX(), (int)e1.GetY())) {
-                if (Math.Abs(velocityY) > Math.Abs(velocityX) && Math.Abs(velocityY) > 1000) {
-                    Log.Info(TAG, "vertical fling inside category list, vy=" + velocityY + ", state=" + categoryListState);
+                if (categoriesReady) {
 
-                    // vertical fling, so valid
-                    if (velocityY < 0 && categoryListState == categoryListStates.Hidden) {
-                        Log.Info(TAG, "show category list");
-                        RefreshCategories(false);
-                        categoryListState = categoryListStates.Showing;
-                        categoryListAnimator.SetIntValues(mContext.Resources.DisplayMetrics.HeightPixels, 0);
-                        categoryListAnimator.Start();
+                    if (Math.Abs(velocityY) > Math.Abs(velocityX) && Math.Abs(velocityY) > 2000) {
+                        Log.Info(TAG, "vertical fling inside category list, vy=" + velocityY + ", state=" + categoryListState);
+
+                        // vertical fling, so valid
+                        if (velocityY < 0 && categoryListState == categoryListStates.Hidden) {
+                            Log.Info(TAG, "show category list");
+                            RefreshCategories(false);
+                            categoryListState = categoryListStates.Showing;
+                            categoryListAnimator.SetIntValues(mContext.Resources.DisplayMetrics.HeightPixels, 0);
+                            categoryListAnimator.Start();
+                        }
+                        if (velocityY > 0 && categoryListState == categoryListStates.Shown) {
+                            Log.Info(TAG, "hide category list");
+                            currentCategoryIndex = -1;
+                            oldCurrentCategoryIndex = -1;
+                            currentCategoryRect = null;
+                            categoryListState = categoryListStates.Hiding;
+                            categoryListAnimator.SetIntValues(0, mContext.Resources.DisplayMetrics.HeightPixels);
+                            categoryListAnimator.Start();
+                        }
                     }
-                    if (velocityY > 0 && categoryListState == categoryListStates.Shown) {
-                        Log.Info(TAG, "hide category list");
-                        currentCategoryIndex = -1;
-                        oldCurrentCategoryIndex = -1;
-                        currentCategoryRect = null;
-                        categoryListState = categoryListStates.Hiding;
-                        categoryListAnimator.SetIntValues(0, mContext.Resources.DisplayMetrics.HeightPixels);
-                        categoryListAnimator.Start();
-                    }
+
                 }
-
+                else {
+                    Log.Info(TAG, "ignore category action, categories not ready");
+                }
             }
             else {
                 Log.Info(TAG, "fling outside category list " + categoryListRect);
-                AdjustButton(e1, e2, velocityX, velocityY);
+                PrepareCurrentBitmap(velocityX > 0 ? -1 : 1);
+                //AdjustButton(e1, e2, velocityX, velocityY);
             }
         }
 
@@ -366,25 +453,25 @@ namespace Tagview
             if (Math.Abs(velocityX) > Math.Abs(velocityY)) {
                 if (velocityX > 0) {
                     categoryListProportion += 0.02f;
-                    MainActivity.SetFloatPref(categoryListProportionSetting, categoryListProportion);
+                    MainActivity.SetSinglePref(Resource.String.categoryListProportion, categoryListProportion);
                 }
                 else {
                     if (categoryListProportion > 0.02) {
                         categoryListProportion -= 0.02f;
                         Log.Info(TAG, "categoryListProportion now " + categoryListProportion);
-                        MainActivity.SetFloatPref(categoryListProportionSetting, categoryListProportion);
+                        MainActivity.SetSinglePref(Resource.String.categoryListProportion, categoryListProportion);
                     }
                 }
             }
             else {
                 if (velocityY > 0) {
                     categoryListMarginProportion += 0.01f;
-                    MainActivity.SetFloatPref(categoryListMarginProportionSetting, categoryListMarginProportion);
+                    MainActivity.SetSinglePref(Resource.String.categoryListMarginProportion, categoryListMarginProportion);
                 }
                 else {
                     if (categoryListMarginProportion > 0.01) {
                         categoryListMarginProportion -= 0.01f;
-                        MainActivity.SetFloatPref(categoryListMarginProportionSetting, categoryListMarginProportion);
+                        MainActivity.SetSinglePref(Resource.String.categoryListMarginProportion, categoryListMarginProportion);
                     }
                 }
             }
@@ -470,32 +557,15 @@ namespace Tagview
         {
             float canvasW = canvas.Width;
             float canvasH = canvas.Height;
-            float bitmapW = currentBitmap.Width;
-            float bitmapH = currentBitmap.Height;
-            //Log.Info("ImageView.OnDraw", "canvas size = " + canvasW + "x" + canvasH);
-            float canvasRatio = (float)canvasW / (float)canvasH;
-            float bitmapRatio = (float)bitmapW / (float)bitmapH;
-            //Log.Info("ImageView.OnDraw", "bm size = " + bitmapW + "x" + bitmapH);
-            float bitmapScale = bitmapRatio > canvasRatio
-                ? canvasW / bitmapW
-                : canvasH / bitmapH;
-            //Log.Info("ImageView.OnDraw", "bmr = " + bitmapRatio + ", bms = " + bitmapScale);
-            Rect dest = new Rect(
-                (int)(bitmapRatio > canvasRatio ? 0 : (canvasW - (bitmapW * bitmapScale)) / 2),
-                (int)(bitmapRatio > canvasRatio ? (canvasH - (bitmapH * bitmapScale)) / 2 : 0),
-                (int)(bitmapRatio > canvasRatio ? canvasW - 1 : canvasW - ((canvasW - (bitmapW * bitmapScale)) / 2)),
-                (int)(bitmapRatio > canvasRatio ? canvasH - ((canvasH - (bitmapH * bitmapScale)) / 2) : 0));
-            /*
-            Log.Info("ImageView.OnDraw", "dest L = " + dest.Left);
-            Log.Info("ImageView.OnDraw", "dest T = " + dest.Top);
-            Log.Info("ImageView.OnDraw", "dest R = " + dest.Right);
-            Log.Info("ImageView.OnDraw", "dest B = " + dest.Bottom);
-            Log.Info("ImageView.OnDraw", "dest W = " + dest.Width());
-            Log.Info("ImageView.OnDraw", "dest H = " + dest.Height());
-            */
 
-            canvas.DrawBitmap(currentBitmap, null, dest, null);
+            if (currentBitmap != null) {
+                Log.Info(TAG, "Draw bitmap");
 
+                canvas.DrawBitmap(currentBitmap, null, currentBitmapRect, null);
+            }
+            else {
+                Log.Info(TAG, "currentBitmap is null");
+            }
             int listWidth = categoryListRect.Width();
             if (categoryListState != categoryListStates.Hidden) {
                 categoryRects.Clear();
@@ -550,7 +620,7 @@ namespace Tagview
                                 RadialGradient grayGradient = new RadialGradient(centerX + tagX, centerY + tagY, maxLength * 1.1f, grayColors, stops, Shader.TileMode.Clamp);
                                 RadialGradient greenGradient = new RadialGradient(centerX + tagX, centerY + tagY, maxLength * 1.1f, greenColors, stops, Shader.TileMode.Clamp);
 
-                                circlePaint.SetShader(tag.index == 0 ? greenGradient : grayGradient);
+                                circlePaint.SetShader(bitmapCache.CurrentImageHasTag(tag.rec.id) ? greenGradient : grayGradient);
                                 canvas.DrawCircle(
                                     centerX + tagX,
                                     centerY + tagY,
@@ -561,7 +631,9 @@ namespace Tagview
                                 // more forgiving than checking the circle
                                 tagRects.Add(new Rect(centerX + tagX - maxLength, centerY + tagY - maxLength,
                                     centerX + tagX + maxLength, centerY + tagY + maxLength));
-                                    
+                                Log.Info(TAG, "new Rect({0},{1},{2},{3})", centerX + tagX - maxLength, centerY + tagY - maxLength,
+                                    centerX + tagX + maxLength, centerY + tagY + maxLength);
+
                                 //canvas.DrawLine(centerX, centerY, centerX + tagX, centerY + tagY, new Paint() { Color = Color.White });
                                 canvas.DrawText(
                                     tag.rec.name,

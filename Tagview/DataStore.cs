@@ -116,6 +116,39 @@ namespace Tagview
         }
     }
 
+    [Table(name: "ImageTag")]
+    public class ImageTagRec
+    {
+        [PrimaryKey, AutoIncrement]
+        public int id { get; set; }
+        [ForeignKey(typeof(ImageRec))]
+        public int imageId { get; set; }
+        [ForeignKey(typeof(TagRec))]
+        public int tagId { get; set; }
+
+        public ImageTagRec() { }
+        public ImageTagRec(int imageId, int tagId)
+        {
+            this.imageId = imageId;
+            this.tagId = tagId;
+        }
+    }
+
+    [Table(name: "SequenceImage")]
+    public class SequenceImageRec
+    {
+        [PrimaryKey, AutoIncrement]
+        public int id { get; set; }
+        [ForeignKey(typeof(ImageRec))]
+        public int imageId { get; set; }
+
+        public SequenceImageRec() { }
+        public SequenceImageRec(int imageId)
+        {
+            this.imageId = imageId;
+        }
+    }
+
     static class DataStore
     {
         private static string TAG = "DataStore";
@@ -152,6 +185,8 @@ namespace Tagview
             db.CreateTable<SequenceRec>();
             db.CreateTable<SequenceDirRec>();
             db.CreateTable<ImageRec>();
+            db.CreateTable<ImageTagRec>();
+            db.CreateTable<SequenceImageRec>();
 
             int category_id = AddCategory(new CategoryRec("General"));
             AddTag(new TagRec(category_id, "Funny"));
@@ -273,7 +308,8 @@ namespace Tagview
         
         public static int AddTag(TagRec newTag)
         {
-            return db.Insert(newTag); 
+            db.Insert(newTag);
+            return newTag.id;
         }
 
         public static int UpdateTag(TagRec tag)
@@ -296,7 +332,8 @@ namespace Tagview
 
         public static int AddSequence(SequenceRec newSequence)
         {
-            return db.Insert(newSequence);
+            db.Insert(newSequence);
+            return newSequence.id;
         }
 
         public static int UpdateSequence(SequenceRec sequence)
@@ -326,17 +363,144 @@ namespace Tagview
 
         public static int AddSequenceDir(SequenceDirRec newSequenceDir)
         {
-            return db.Insert(newSequenceDir);
+            db.Insert(newSequenceDir);
+            return newSequenceDir.id;
         }
 
-        public static int UpdateSequenceDir(SequenceDirRec tag)
+        public static int UpdateSequenceDir(SequenceDirRec sequenceDir)
         {
-            return db.Update(tag);
+            return db.Update(sequenceDir);
         }
 
-        public static int DeleteSequenceDir(SequenceDirRec tag)
+        public static int DeleteSequenceDir(SequenceDirRec sequenceDir)
         {
-            return db.Delete(tag);
+            return db.Delete(sequenceDir);
+        }
+
+        // image and directory load methods; we load and process (ie create image records)
+        // for a directory when we open it or when we activate a sequence using that 
+        // directory.
+
+        public static int AddImage(ImageRec newImage)
+        {
+            db.Insert(newImage);
+            return newImage.id;
+        }
+
+        public static int AddImage(String filename, String directory)
+        {
+            return AddImage(new ImageRec(filename, directory));
+        }
+
+        public static int DeleteImage(ImageRec image)
+        {
+            return db.Delete(image);
+        }
+
+        public static int DeleteImage(String filename, String directory)
+        {
+            return db.Execute("delete from Image where name = ? and directory = ?", filename, directory);
+        }
+
+        public static (List<String>, List<int>) OpenDirectory(String directory, Boolean recursive)
+        {
+            List<String> dirFiles = new List<String>(System.IO.Directory.GetFiles(directory));
+            List<int> imageIds = new List<int>();
+            List<ImageRec> dbFiles = LoadDirectoryImages(directory);
+
+            if (dbFiles.Count == 0) {
+
+                // no need to check, just add all these files
+                Log.Info(TAG, String.Format("No files for dir {0} in db", directory));
+                foreach (var pathname in dirFiles) {
+                    var filename = pathname.Substring(directory.Length + 1);
+                    // Log.Info(TAG, String.Format("Add file {0} in new dir to db", filename));
+                    imageIds.Add(AddImage(filename, directory));
+                }
+            }
+            else {
+
+                // create a hash by name and remove everything we find; the remainder are 
+                // the new files in the dir
+                // HashSet<String> dbFile = dbFiles.ConvertAll(x => x.name).ToHashSet<String>();
+
+                // create a lookup hash for database image id; these are used for updating
+                // image tags. We know these files are in the current directory so we don't need
+                // to qualify the name by dir
+                Dictionary<String, int> imageId = dbFiles.ToDictionary(x => x.name, x => x.id);
+
+                foreach (var pathname in dirFiles) {
+                    var filename = pathname.Substring(directory.Length + 1);
+                    int id;
+                    if (imageId.TryGetValue(filename, out id)) {
+
+                        // this file is already in the db;
+                        // Log.Info(TAG, String.Format("{0} already in db", filename));
+                        imageId.Remove(filename);
+                        imageIds.Add(id);                        
+                    }
+                    else {
+
+                        // this file needs to be added to the db
+                        Log.Info(TAG, String.Format("new file {0}, add to db", filename));
+                        imageIds.Add(AddImage(filename, directory));
+                        //imageIds.Add(-1);
+                    }
+                }
+
+                foreach (var filename in imageId.Keys) {
+
+                    // these files have been deleted since they didn't appear in the 
+                    // directory list and thus get removed from the dictionary
+                    Log.Info(TAG, String.Format("deleted file {0}, remove from db", filename));
+                    DeleteImage(filename, directory);
+                }
+            }
+
+            /*
+            foreach (var file in dirFiles) {
+                Log.Info(TAG, "dirFiles: " + file);
+            }
+            foreach (var id in imageIds) {
+                Log.Info(TAG, "imageIds: " + id);
+            }
+            */            
+
+            return (dirFiles, imageIds);
+        }
+
+        public static List<ImageRec> LoadDirectoryImages(String directory)
+        {
+            var table = db.Query<ImageRec>("select * from Image where directory = ?", directory);
+            return table;
+        }
+
+        // image tag methods; no updating
+        public static int AddImageTag(ImageTagRec newImageTag)
+        {
+            db.Insert(newImageTag);
+            return newImageTag.id;
+        }
+
+        public static int AddImageTag(int imageId, int tagId)
+        {
+            return AddImageTag(new ImageTagRec(imageId, tagId));
+        }
+
+        public static int DeleteImageTag(ImageTagRec image)
+        {
+            return db.Delete(image);
+        }
+
+        public static int DeleteImageTag(int imageId, int tagId)
+        {
+            return db.Execute("delete from ImageTag where imageId = ? and tagId = ?", imageId, tagId);
+        }
+
+        public static List<ImageTagRec> LoadImageTags(int imageId)
+        {
+            var table = db.Query<ImageTagRec>("select * from ImageTag where imageId = ?", imageId);
+            return table;
         }
 
     }

@@ -31,8 +31,8 @@ namespace Tagview
 		public partial class Array
 		{
 			
-			// aapt resource value: 0x7f050000
-			public const int sort_options_array = 2131034112;
+			// aapt resource value: 0x7f060000
+			public const int sort_options_array = 2131099648;
 			
 			static Array()
 			{
@@ -97,125 +97,131 @@ namespace Tagview
 		public partial class Id
 		{
 			
-			// aapt resource value: 0x7f060014
-			public const int ListItemImage = 2131099668;
+			// aapt resource value: 0x7f070014
+			public const int ListItemImage = 2131165204;
 			
-			// aapt resource value: 0x7f060004
-			public const int ListItemText = 2131099652;
+			// aapt resource value: 0x7f070004
+			public const int ListItemText = 2131165188;
 			
-			// aapt resource value: 0x7f060023
-			public const int addDirectory_btn = 2131099683;
+			// aapt resource value: 0x7f070025
+			public const int addDirectory_btn = 2131165221;
 			
-			// aapt resource value: 0x7f060002
-			public const int add_child_btn = 2131099650;
+			// aapt resource value: 0x7f070002
+			public const int add_child_btn = 2131165186;
 			
-			// aapt resource value: 0x7f060013
-			public const int cancel_btn = 2131099667;
+			// aapt resource value: 0x7f070013
+			public const int cancel_btn = 2131165203;
 			
-			// aapt resource value: 0x7f060019
-			public const int categories = 2131099673;
+			// aapt resource value: 0x7f070019
+			public const int categories = 2131165209;
 			
-			// aapt resource value: 0x7f060003
-			public const int children_lvw = 2131099651;
+			// aapt resource value: 0x7f070003
+			public const int children_lvw = 2131165187;
 			
-			// aapt resource value: 0x7f060026
-			public const int clear_database_btn = 2131099686;
+			// aapt resource value: 0x7f070028
+			public const int clear_database_btn = 2131165224;
 			
-			// aapt resource value: 0x7f060007
-			public const int delete_child_btn = 2131099655;
+			// aapt resource value: 0x7f070007
+			public const int delete_child_btn = 2131165191;
 			
-			// aapt resource value: 0x7f060024
-			public const int directory_lvw = 2131099684;
+			// aapt resource value: 0x7f070026
+			public const int directory_lvw = 2131165222;
 			
-			// aapt resource value: 0x7f060006
-			public const int edit_child_btn = 2131099654;
+			// aapt resource value: 0x7f070006
+			public const int edit_child_btn = 2131165190;
 			
-			// aapt resource value: 0x7f060005
-			public const int enabled_swt = 2131099653;
+			// aapt resource value: 0x7f070005
+			public const int enabled_swt = 2131165189;
 			
-			// aapt resource value: 0x7f060010
-			public const int file_lvw = 2131099664;
+			// aapt resource value: 0x7f070010
+			public const int file_lvw = 2131165200;
 			
-			// aapt resource value: 0x7f06001a
-			public const int filters = 2131099674;
+			// aapt resource value: 0x7f07001a
+			public const int filters = 2131165210;
 			
-			// aapt resource value: 0x7f060016
-			public const int imageview_main = 2131099670;
+			// aapt resource value: 0x7f07001f
+			public const int fragment_container = 2131165215;
 			
-			// aapt resource value: 0x7f06000e
-			public const int includeChildren_swt = 2131099662;
+			// aapt resource value: 0x7f070016
+			public const int imageview_main = 2131165206;
 			
-			// aapt resource value: 0x7f06000d
-			public const int includeChildren_txt = 2131099661;
+			// aapt resource value: 0x7f07000e
+			public const int includeChildren_swt = 2131165198;
 			
-			// aapt resource value: 0x7f060000
-			public const int linearLayout1 = 2131099648;
+			// aapt resource value: 0x7f07000d
+			public const int includeChildren_txt = 2131165197;
 			
-			// aapt resource value: 0x7f060011
-			public const int linearLayout3 = 2131099665;
+			// aapt resource value: 0x7f070000
+			public const int linearLayout1 = 2131165184;
 			
-			// aapt resource value: 0x7f060009
-			public const int linearLayout4 = 2131099657;
+			// aapt resource value: 0x7f070011
+			public const int linearLayout3 = 2131165201;
 			
-			// aapt resource value: 0x7f06000c
-			public const int linearLayout5 = 2131099660;
+			// aapt resource value: 0x7f070009
+			public const int linearLayout4 = 2131165193;
 			
-			// aapt resource value: 0x7f06000b
-			public const int parent_spn = 2131099659;
+			// aapt resource value: 0x7f07000c
+			public const int linearLayout5 = 2131165196;
 			
-			// aapt resource value: 0x7f060027
-			public const int reset_settings_btn = 2131099687;
+			// aapt resource value: 0x7f07000b
+			public const int parent_spn = 2131165195;
 			
-			// aapt resource value: 0x7f060018
-			public const int restart = 2131099672;
+			// aapt resource value: 0x7f07001e
+			public const int preferences = 2131165214;
 			
-			// aapt resource value: 0x7f060017
-			public const int resume = 2131099671;
+			// aapt resource value: 0x7f070029
+			public const int reset_settings_btn = 2131165225;
 			
-			// aapt resource value: 0x7f06001f
-			public const int reverse_chb = 2131099679;
+			// aapt resource value: 0x7f070018
+			public const int restart = 2131165208;
 			
-			// aapt resource value: 0x7f060012
-			public const int select_btn = 2131099666;
+			// aapt resource value: 0x7f070017
+			public const int resume = 2131165207;
 			
-			// aapt resource value: 0x7f06001b
-			public const int sequences = 2131099675;
+			// aapt resource value: 0x7f070021
+			public const int reverse_chb = 2131165217;
 			
-			// aapt resource value: 0x7f06001d
-			public const int settings = 2131099677;
+			// aapt resource value: 0x7f070012
+			public const int select_btn = 2131165202;
 			
-			// aapt resource value: 0x7f060021
-			public const int slideShowPeriodSecs_txt = 2131099681;
+			// aapt resource value: 0x7f07001b
+			public const int sequences = 2131165211;
 			
-			// aapt resource value: 0x7f06001e
-			public const int sort_options_spn = 2131099678;
+			// aapt resource value: 0x7f07001d
+			public const int settings = 2131165213;
 			
-			// aapt resource value: 0x7f06001c
-			public const int tag = 2131099676;
+			// aapt resource value: 0x7f070023
+			public const int slideShowPeriodSecs_txt = 2131165219;
 			
-			// aapt resource value: 0x7f060025
-			public const int tag_txt = 2131099685;
+			// aapt resource value: 0x7f070020
+			public const int sort_options_spn = 2131165216;
 			
-			// aapt resource value: 0x7f060015
-			public const int text1 = 2131099669;
+			// aapt resource value: 0x7f07001c
+			public const int tag = 2131165212;
 			
-			// aapt resource value: 0x7f06000a
-			public const int textView1 = 2131099658;
+			// aapt resource value: 0x7f070027
+			public const int tag_txt = 2131165223;
 			
-			// aapt resource value: 0x7f06000f
-			public const int textView2 = 2131099663;
+			// aapt resource value: 0x7f070015
+			public const int text1 = 2131165205;
 			
-			// aapt resource value: 0x7f060020
-			public const int timingDown_btn = 2131099680;
+			// aapt resource value: 0x7f07000a
+			public const int textView1 = 2131165194;
 			
-			// aapt resource value: 0x7f060022
-			public const int timingUp_btn = 2131099682;
+			// aapt resource value: 0x7f07000f
+			public const int textView2 = 2131165199;
 			
-			// aapt resource value: 0x7f060001
-			public const int title_tvw = 2131099649;
+			// aapt resource value: 0x7f070022
+			public const int timingDown_btn = 2131165218;
 			
-			// aapt resource value: 0x7f060008
-			public const int title_txt = 2131099656;
+			// aapt resource value: 0x7f070024
+			public const int timingUp_btn = 2131165220;
+			
+			// aapt resource value: 0x7f070001
+			public const int title_tvw = 2131165185;
+			
+			// aapt resource value: 0x7f070008
+			public const int title_txt = 2131165192;
 			
 			static Id()
 			{
@@ -255,10 +261,13 @@ namespace Tagview
 			public const int menu = 2130903047;
 			
 			// aapt resource value: 0x7f030008
-			public const int sequence = 2130903048;
+			public const int preferences = 2130903048;
 			
 			// aapt resource value: 0x7f030009
-			public const int settings = 2130903049;
+			public const int sequence = 2130903049;
+			
+			// aapt resource value: 0x7f03000a
+			public const int settings = 2130903050;
 			
 			static Layout()
 			{
@@ -273,14 +282,53 @@ namespace Tagview
 		public partial class String
 		{
 			
-			// aapt resource value: 0x7f040000
-			public const int ApplicationName = 2130968576;
+			// aapt resource value: 0x7f050000
+			public const int ApplicationName = 2131034112;
 			
-			// aapt resource value: 0x7f040001
-			public const int SelectDirectory = 2130968577;
+			// aapt resource value: 0x7f050001
+			public const int SelectDirectory = 2131034113;
 			
-			// aapt resource value: 0x7f040002
-			public const int SelectFile = 2130968578;
+			// aapt resource value: 0x7f050002
+			public const int SelectFile = 2131034114;
+			
+			// aapt resource value: 0x7f050005
+			public const int buttonBorderProportion = 2131034117;
+			
+			// aapt resource value: 0x7f050004
+			public const int buttonSurroundTint = 2131034116;
+			
+			// aapt resource value: 0x7f050009
+			public const int categoryListAnimationPeriod = 2131034121;
+			
+			// aapt resource value: 0x7f050007
+			public const int categoryListMarginProportion = 2131034119;
+			
+			// aapt resource value: 0x7f050006
+			public const int categoryListProportion = 2131034118;
+			
+			// aapt resource value: 0x7f050008
+			public const int categorySelectionAnimationPeriod = 2131034120;
+			
+			// aapt resource value: 0x7f05000c
+			public const int currentDirectory = 2131034124;
+			
+			// aapt resource value: 0x7f05000d
+			public const int currentFile = 2131034125;
+			
+			// aapt resource value: 0x7f05000e
+			public const int currentIndex = 2131034126;
+			
+			// aapt resource value: 0x7f05000f
+			public const int currentSequenceId = 2131034127;
+			
+			// aapt resource value: 0x7f05000a
+			public const int maxCacheEntries = 2131034122;
+			
+			// aapt resource value: 0x7f050003
+			public const int radiusProportion = 2131034115;
+			
+			// aapt resource value: 0x7f05000b
+			public const int version = 2131034123;
 			
 			static String()
 			{
@@ -288,6 +336,22 @@ namespace Tagview
 			}
 			
 			private String()
+			{
+			}
+		}
+		
+		public partial class Xml
+		{
+			
+			// aapt resource value: 0x7f040000
+			public const int preferences = 2130968576;
+			
+			static Xml()
+			{
+				global::Android.Runtime.ResourceIdManager.UpdateIdValues();
+			}
+			
+			private Xml()
 			{
 			}
 		}

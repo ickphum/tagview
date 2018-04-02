@@ -33,4 +33,8 @@
         android:text="Settings"
         android:id="@+id/settings"
         android:width="100dp" />
+  <Button
+      android:text="Preferences"
+      android:id="@+id/preferences"
+      android:width="100dp" />
 </GridLayout>

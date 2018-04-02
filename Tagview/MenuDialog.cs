@@ -57,6 +57,10 @@ namespace Tagview
                 ((MainActivity)this.Activity).ShowSequences();
             };
 
+            view.FindViewById<Button>(Resource.Id.preferences).Click += (object sender, EventArgs args) => {
+                ((MainActivity)this.Activity).ShowPreferences();
+            };
+
             return view;
 
         }

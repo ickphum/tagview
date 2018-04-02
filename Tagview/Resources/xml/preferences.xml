@@ -1,0 +1,58 @@
+<PreferenceScreen
+        xmlns:android="http://schemas.android.com/apk/res/android"
+        android:key="first_preferencescreen">
+  <PreferenceScreen
+          android:key="imageviewsettings"
+          android:title="Image View Settings">
+      <EditTextPreference
+            android:key="radiusProportion"
+            android:title="Radius Proportion"
+            android:inputType="numberDecimal" />
+    <EditTextPreference
+            android:key="buttonSurroundTint"
+            android:title="Button Surround Tint"
+            android:inputType="numberDecimal" />
+    <EditTextPreference
+            android:key="buttonBorderProportion"
+            android:title="Button Border Proportion"
+            android:inputType="numberDecimal" />
+    <EditTextPreference
+            android:key="categoryListProportion"
+            android:title="Category List Proportion"
+            android:inputType="numberDecimal" />
+    <EditTextPreference
+            android:key="categoryListMarginProportion"
+            android:title="Category List Margin Proportion"
+            android:inputType="numberDecimal" />
+    <EditTextPreference
+            android:key="categorySelectionAnimationPeriod"
+            android:title="Category Selection Animation Period"
+            android:inputType="number" />
+    <EditTextPreference
+            android:key="categoryListAnimationPeriod"
+            android:title="Category List Animation Period"
+            android:inputType="number" />
+  </PreferenceScreen>
+  <PreferenceScreen
+          android:key="cachesettings"
+          android:title="Cache Settings">
+    <EditTextPreference
+            android:key="maxCacheEntries"
+            android:title="Max Cache Entries"
+            android:inputType="number" />
+    <EditTextPreference
+            android:key="currentDirectory"
+            android:title="Current Directory" />
+    <EditTextPreference
+            android:key="currentFile"
+            android:title="Current File" />
+    <EditTextPreference
+            android:key="currentIndex"
+            android:title="Current Index" 
+            android:inputType="number"  />
+    <EditTextPreference
+            android:key="currentSequenceId"
+            android:title="Current Sequence Id"
+            android:inputType="number"  />
+  </PreferenceScreen>
+</PreferenceScreen>

@@ -7,6 +7,9 @@ using Android.Content;
 using System.IO;
 using SQLite;
 using Android.Views;
+using System.Threading;
+using System.Collections.Generic;
+using Android.Preferences;
 
 namespace Tagview
 {
@@ -14,47 +17,134 @@ namespace Tagview
     public class MainActivity : Activity, GestureDetector.IOnGestureListener
     {
         private static string TAG = "MainActivity";
-        public static string PACKAGE;
 
         public ImageShow imageView;
         private GestureDetector _gestureDetector;
 
+        // actvities started for result need an identifier
+        internal static int directorySelection = 1;
+
         protected override void OnCreate(Bundle bundle)
         {
+            Log.Info(TAG, "OnCreate");
             base.OnCreate(bundle);
 
             // initialise the static package variable so the static ResetPreferences method can use it.
-            PACKAGE = PackageName;
-            var prefs = Application.Context.GetSharedPreferences(PackageName, FileCreationMode.Private);
+            //var prefs = Application.Context.GetSharedPreferences(PackageName, FileCreationMode.Private);
+            var prefs = PreferenceManager.GetDefaultSharedPreferences(Application.Context);
             if (!prefs.Contains("version")) {
                 Log.Info(TAG, "no version found, reset prefs");
                 ResetPreferences();
-                prefs = Application.Context.GetSharedPreferences(PackageName, FileCreationMode.Private);
+                prefs = PreferenceManager.GetDefaultSharedPreferences(Application.Context);
             }
+
+            /*
+            var sprefs = PreferenceManager.GetDefaultSharedPreferences(Application.Context);
+            IDictionary<string, object> allPrefs = sprefs.All;
+            foreach (var key in allPrefs.Keys) {
+                allPrefs.TryGetValue(key, out object value);
+                Log.Info(TAG, "pref {0} = {1}", key, value);
+            }
+            */
 
             // Set our view from the "main" layout resource
             SetContentView(Resource.Layout.Main);
             _gestureDetector = new GestureDetector(this);
 
             imageView = FindViewById<ImageShow>(Resource.Id.imageview_main);
-            imageView.SetActivity(this);
         }
 
         protected override void OnResume()
         {
             Log.Info(TAG, "OnResume");
             base.OnResume();
-            this.imageView.LoadPreferences();
-            this.imageView.RefreshCategories(true);
-            this.imageView.Invalidate();
+            ThreadPool.QueueUserWorkItem(o => {
+                this.imageView.LoadPreferences();
+                this.imageView.RefreshCategories(true);
+            });
         }
 
-        public static void SetFloatPref(String label, float value)
+        public static float GetFloatPref(int resourceId, float defaultValue, ISharedPreferences prefs)
         {
-            var prefs = Application.Context.GetSharedPreferences(PACKAGE, FileCreationMode.Private);
+            return GetFloatPref(Application.Context.Resources.GetString(resourceId), defaultValue, prefs);
+        }
+
+        public static float GetFloatPref(String label, float defaultValue, ISharedPreferences prefs)
+        {
+            if (prefs == null)
+                prefs = PreferenceManager.GetDefaultSharedPreferences(Application.Context);
+            string strValue = prefs.GetString(label, defaultValue.ToString());
+
+            return float.Parse(strValue);
+        }
+
+        public static int GetIntPref(int resourceId, int defaultValue, ISharedPreferences prefs)
+        {
+            return GetIntPref(Application.Context.Resources.GetString(resourceId), defaultValue, prefs);
+        }
+
+        public static int GetIntPref(String label, int defaultValue, ISharedPreferences prefs)
+        {
+            if (prefs == null)
+                prefs = PreferenceManager.GetDefaultSharedPreferences(Application.Context);
+            string strValue = prefs.GetString(label, defaultValue.ToString());
+
+            return int.Parse(strValue);
+        }
+
+        public static string GetStringPref(int resourceId, string defaultValue, ISharedPreferences prefs)
+        {
+            return GetStringPref(Application.Context.Resources.GetString(resourceId), defaultValue, prefs);
+        }
+
+        public static string GetStringPref(String label, string defaultValue, ISharedPreferences prefs)
+        {
+            if (prefs == null)
+                prefs = PreferenceManager.GetDefaultSharedPreferences(Application.Context);
+            return prefs.GetString(label, defaultValue);
+        }
+
+        public static void SetSinglePref(int resourceId, float value)
+        {
+            SetSinglePref(Application.Context.Resources.GetString(resourceId), value);
+        }
+
+        public static void SetSinglePref(String label, float value)
+        {
+            var prefs = PreferenceManager.GetDefaultSharedPreferences(Application.Context);
 
             var prefEdit = prefs.Edit();
-            prefEdit.PutFloat(label, value);
+            prefEdit.PutString(label, value.ToString());
+
+            prefEdit.Commit();
+        }
+
+        public static void SetSinglePref(int resourceId, int value)
+        {
+            SetSinglePref(Application.Context.Resources.GetString(resourceId), value);
+        }
+
+        public static void SetSinglePref(String label, int value)
+        {
+            var prefs = PreferenceManager.GetDefaultSharedPreferences(Application.Context);
+
+            var prefEdit = prefs.Edit();
+            prefEdit.PutString(label, value.ToString());
+
+            prefEdit.Commit();
+        }
+
+        public static void SetSinglePref(int resourceId, String value)
+        {
+            SetSinglePref(Application.Context.Resources.GetString(resourceId), value);
+        }
+
+        public static void SetSinglePref(String label, String value)
+        {
+            var prefs = PreferenceManager.GetDefaultSharedPreferences(Application.Context);
+
+            var prefEdit = prefs.Edit();
+            prefEdit.PutString(label, value);
 
             prefEdit.Commit();
         }
@@ -63,18 +153,23 @@ namespace Tagview
         {
             Log.Info(TAG, "ResetPreferences");
 
-            var prefs = Application.Context.GetSharedPreferences(PACKAGE, FileCreationMode.Private);
+            var prefs = PreferenceManager.GetDefaultSharedPreferences(Application.Context);
 
             // install default preferences
             var prefEdit = prefs.Edit();
-            prefEdit.PutInt("version", 1);
-            prefEdit.PutFloat(ImageShow.radiusProportionSetting, 0.3f);
-            prefEdit.PutFloat(ImageShow.buttonSurroundTintSetting, 0.7f);
-            prefEdit.PutFloat(ImageShow.buttonBorderProportionSetting, 0.07f);
-            prefEdit.PutFloat(ImageShow.categoryListProportionSetting, 0.24f);
-            prefEdit.PutFloat(ImageShow.categoryListMarginProportionSetting, 0.08f);
-            prefEdit.PutInt(ImageShow.categorySelectionAnimationPeriodSetting, 500);
-            prefEdit.PutInt(ImageShow.categoryListAnimationPeriodSetting, 700);
+            prefEdit.Clear();
+
+            prefEdit.PutString(Application.Context.Resources.GetString(Resource.String.version), "1");
+
+            prefEdit.PutString(Application.Context.Resources.GetString(Resource.String.radiusProportion), "0.3");
+            prefEdit.PutString(Application.Context.Resources.GetString(Resource.String.buttonSurroundTint), "0.7");
+            prefEdit.PutString(Application.Context.Resources.GetString(Resource.String.buttonBorderProportion), "0.07");
+            prefEdit.PutString(Application.Context.Resources.GetString(Resource.String.categoryListProportion), "0.24");
+            prefEdit.PutString(Application.Context.Resources.GetString(Resource.String.categoryListMarginProportion), "0.08");
+            prefEdit.PutString(Application.Context.Resources.GetString(Resource.String.categorySelectionAnimationPeriod), "500");
+            prefEdit.PutString(Application.Context.Resources.GetString(Resource.String.categoryListAnimationPeriod), "700");
+
+            prefEdit.PutString(Application.Context.Resources.GetString(Resource.String.maxCacheEntries), "5");
 
             prefEdit.Commit();
         }
@@ -93,6 +188,13 @@ namespace Tagview
             StartActivity(intent);
         }
 
+        internal void ShowPreferences()
+        {
+            Log.Info(TAG, "ShowPreferences");
+            var intent = new Intent(this, typeof(PrefsActivity));
+            StartActivity(intent);
+        }
+
         internal void ShowSequences()
         {
             Log.Info(TAG, "ShowSequences");
@@ -100,14 +202,16 @@ namespace Tagview
             StartActivity(intent);
         }
 
-
         protected override void OnActivityResult(int requestCode, Result resultCode, Intent data)
         {
             base.OnActivityResult(requestCode, resultCode, data);
             if (resultCode == Result.Ok) {
-                String directory = data.GetStringExtra("directory");
-                Boolean includeChildren = data.GetBooleanExtra("includeChildren", false);
-                Log.Info(TAG, "Dir select ok: " + directory);
+                if (requestCode == directorySelection) {
+                    String directory = data.GetStringExtra("directory");
+                    Boolean includeChildren = data.GetBooleanExtra("includeChildren", false);
+                    Log.Info(TAG, "Dir select ok: " + directory);
+                    imageView.PrepareDirectory(directory);
+                }
             }
             else {
                 Log.Info(TAG, "Dir select cancelled");
@@ -155,6 +259,7 @@ namespace Tagview
             this.imageView.HandleSingleTap(e);
             return false;
         }
+
     }
 }
 
